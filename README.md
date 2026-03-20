@@ -1,8 +1,8 @@
 # BarberBook Pro
 
-Full **BarberBook Pro** shop-management UI in a single `index.html` (synced from your saved file `~/Downloads/BarberBook_Pro.html`). Bradley Virtual Solutions portfolio app.
+Full **BarberBook Pro** shop UI in one `index.html` — **blue & chrome silver** theme. Source of truth is `BradleyVS App Dashboard/BarberBook_Pro.html` (copy here before commit).
 
-After you edit the master copy in Downloads, overwrite `index.html` here (or edit this file directly) before committing.
+Older marketing `styles.css` pages are **not** this app; the live product is this file only.
 
 ## GitHub
 
