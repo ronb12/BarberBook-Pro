@@ -4,6 +4,15 @@ Full **BarberBook Pro** shop UI in one `index.html` — **blue & chrome silver**
 
 Older marketing `styles.css` pages are **not** this app; the live product is this file only.
 
+## First-time login (security)
+
+**There are no default passwords in the repository** (so GitHub secret scanning stays clean). On a fresh browser / first open:
+
+1. You’ll see **Create your owner password** — choose a strong password (min 8 characters). It is stored only in **local storage** on that device.
+2. Default owner email in code is `owner@example.com` — you can change it later via Staff/settings workflows, or sign in with that email after setup.
+
+If you **import a backup JSON**, use the credentials from that file.
+
 ## GitHub
 
 Create the repository (if you haven’t):
