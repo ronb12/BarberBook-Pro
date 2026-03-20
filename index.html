@@ -172,11 +172,7 @@ td{padding:10px 14px;font-size:0.85rem;}
       <div class="field"><label>Client Name</label><input id="appt-client" placeholder="John Smith"></div>
       <div class="field"><label>Phone</label><input id="appt-phone" placeholder="(504) 555-0100"></div>
       <div class="field"><label>Service</label>
-        <select id="appt-service">
-          <option>Haircut — $25</option><option>Fade — $30</option><option>Beard Trim — $15</option>
-          <option>Haircut + Beard — $40</option><option>Shape Up — $20</option>
-          <option>Kids Cut — $18</option><option>Hot Towel Shave — $35</option><option>Color — $60</option>
-        </select>
+        <select id="appt-service"></select>
       </div>
       <div class="field"><label>Barber</label>
         <select id="appt-barber"><option>Any Available</option></select>
@@ -365,11 +361,7 @@ td{padding:10px 14px;font-size:0.85rem;}
       <div class="form-grid">
         <div class="field"><label>Name (or "Guest")</label><input id="wi-name" placeholder="Guest or John S."></div>
         <div class="field"><label>Service</label>
-          <select id="wi-service">
-            <option>Haircut — $25</option><option>Fade — $30</option><option>Beard Trim — $15</option>
-            <option>Haircut + Beard — $40</option><option>Shape Up — $20</option>
-            <option>Kids Cut — $18</option><option>Hot Towel Shave — $35</option><option>Color — $60</option>
-          </select>
+          <select id="wi-service"></select>
         </div>
         <div class="field"><label>Assign Barber</label><select id="wi-barber"><option>Next Available</option></select></div>
         <div class="field"><label>Phone (optional)</label><input id="wi-phone" placeholder="(504) 555-0100"></div>
@@ -511,6 +503,15 @@ td{padding:10px 14px;font-size:0.85rem;}
         <div style="display:flex;align-items:center;gap:8px;"><input style="width:80px;background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:0.875rem;" type="number" id="taxRate" value="0" placeholder="0"><span style="color:var(--smoke);">%</span></div>
       </div>
     </div>
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="card-hdr"><span class="card-title">Data backup (SaaS-ready export)</span></div>
+      <p style="font-size:0.82rem;color:var(--smoke);margin-bottom:0.75rem;">Download JSON for your records or to migrate to a hosted multi-tenant backend later.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+        <button type="button" class="btn btn-gold" onclick="exportBarberBookData()">⬇ Export backup</button>
+        <input type="file" id="bb-import-backup" accept="application/json,.json" style="display:none" onchange="importBarberBookData(event)">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('bb-import-backup').click()">⬆ Import backup</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -520,10 +521,10 @@ td{padding:10px 14px;font-size:0.85rem;}
 
 <script>
 const ROLES = { owner: 'Owner', manager: 'Manager', barber: 'Barber' };
+const STORE_KEY = 'barberbook_pro_v1';
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let currentUser = null;
-const DB = {
+/** Default state (new installs + merge baseline). */
+const DEFAULT_BB = {
   users: [
     { id: 1, name: 'Shop Owner', email: 'owner@barberbook.com', password: 'barberbook123', role: 'owner' }
   ],
@@ -544,11 +545,54 @@ const DB = {
     {id:3,name:'Barber Capes',cat:'Towels & Capes',qty:12,low:4,cost:5.99,supplier:'Amazon'},
     {id:4,name:'Shampoo (gallon)',cat:'Hair Products',qty:2,low:1,cost:14.99,supplier:'CosmoProf'},
   ],
-  transactions: [], settings:{shopName:'Fresh Cuts Barbershop',open:'09:00',close:'19:00'},
-  weeklyRevenue: [120,95,180,210,165,0,0]
+  transactions: [],
+  settings: {
+    shopName: 'Fresh Cuts Barbershop',
+    phone: '',
+    address: '',
+    open: '09:00',
+    close: '19:00',
+    taxRate: 0
+  },
+  weeklyRevenue: [0, 0, 0, 0, 0, 0, 0]
 };
 
+let DB;
+let currentUser = null;
 let checkoutApptId = null;
+
+function loadDB() {
+  DB = JSON.parse(JSON.stringify(DEFAULT_BB));
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    DB.users = (p.users && p.users.length) ? p.users : DEFAULT_BB.users;
+    DB.appointments = p.appointments || [];
+    DB.clients = p.clients || [];
+    DB.barbers = p.barbers || [];
+    DB.walkin = p.walkin || [];
+    DB.services = (p.services && p.services.length) ? p.services : DEFAULT_BB.services;
+    DB.inventory = (p.inventory && p.inventory.length) ? p.inventory : DEFAULT_BB.inventory;
+    DB.transactions = p.transactions || [];
+    DB.settings = Object.assign({}, DEFAULT_BB.settings, p.settings || {});
+    DB.weeklyRevenue = Array.isArray(p.weeklyRevenue) && p.weeklyRevenue.length === 7
+      ? p.weeklyRevenue
+      : [...DEFAULT_BB.weeklyRevenue];
+  } catch (e) {
+    console.warn('BarberBook loadDB:', e);
+  }
+}
+
+function saveDB() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+  } catch (e) {
+    console.warn('BarberBook saveDB:', e);
+  }
+}
+
+loadDB();
 
 // ── LOGIN (match NailGlow: gate app until sign-in) ─────────────────────────────
 function showLogin() {
@@ -593,6 +637,8 @@ function doLogout() {
 function afterLoginInit() {
   const d = document.getElementById('appt-date');
   if (d && !d.value) d.value = new Date().toISOString().split('T')[0];
+  loadSettingsForm();
+  populateServiceSelects();
   populateBarberSelects();
   renderServices();
   renderInventory();
@@ -612,12 +658,34 @@ function showPanel(id, btn) {
   if(id==='services') renderServices();
   if(id==='inventory') renderInventory();
   if(id==='reports') renderReports();
+  if(id==='settings') loadSettingsForm();
 }
 
 // ── MODALS ─────────────────────────────────────────────────────────────────────
-function openModal(id) { document.getElementById(id).classList.add('open'); populateBarberSelects(); }
+function openModal(id) {
+  populateBarberSelects();
+  populateServiceSelects();
+  document.getElementById(id).classList.add('open');
+}
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open');}));
+
+function serviceMenuLabel(s) { return s.name + ' — $' + s.price; }
+
+function populateServiceSelects() {
+  ['appt-service', 'wi-service'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    if (!DB.services.length) {
+      sel.innerHTML = '<option>No services — add in Services tab</option>';
+      return;
+    }
+    sel.innerHTML = DB.services.map(s => '<option>' + serviceMenuLabel(s) + '</option>').join('');
+    const match = [...sel.options].find(o => o.text === prev);
+    if (match) sel.value = match.text;
+  });
+}
 
 function populateBarberSelects() {
   ['appt-barber','wi-barber','cl-barber','filterBarber'].forEach(id=>{
@@ -625,7 +693,8 @@ function populateBarberSelects() {
     const val = sel.value;
     sel.innerHTML = id==='filterBarber'?'<option value="">All Barbers</option>':'<option>'+('appt-barber'===id?'Any Available':'Next Available')+'</option>';
     DB.barbers.forEach(b=>{ const o=document.createElement('option'); o.value=b.name; o.textContent=b.name; sel.appendChild(o); });
-    sel.value = val;
+    const has = [...sel.options].some(o => o.text === val);
+    if (has) sel.value = val;
   });
 }
 
@@ -648,6 +717,7 @@ function saveAppt() {
   closeModal('apptModal');
   updateDashboard(); renderAppointments();
   ['appt-client','appt-phone','appt-notes'].forEach(id=>document.getElementById(id).value='');
+  saveDB();
 }
 
 function renderAppointments() {
@@ -678,21 +748,29 @@ function cancelAppt(id) {
   DB.appointments = DB.appointments.filter(a=>a.id!==id);
   DB.walkin = DB.walkin.filter(a=>a.id!==id);
   renderAppointments(); updateDashboard();
+  saveDB();
 }
 
 function checkout(id) {
   const appt = DB.appointments.find(a=>a.id===id)||DB.walkin.find(a=>a.id===id);
   if(!appt) return;
   checkoutApptId = id;
+  const taxR = parseFloat(DB.settings.taxRate) || 0;
+  const tax = Math.round(appt.price * (taxR / 100) * 100) / 100;
+  const taxLine = tax > 0
+    ? `<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--smoke);margin-top:6px;"><span>Tax (${taxR}%)</span><span>$${tax.toFixed(2)}</span></div>`
+    : '';
   document.getElementById('checkoutContent').innerHTML = `
     <div style="background:var(--cream);border-radius:8px;padding:1rem;margin-bottom:1rem;">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-weight:600">${appt.service}</span><span style="font-family:'Pacifico',cursive;font-size:1.3rem;color:var(--red)">$${appt.price}</span></div>
-      <div style="font-size:0.82rem;color:var(--smoke)">Client: ${appt.client} · Barber: ${appt.barber}</div>
+      ${taxLine}
+      <div style="font-size:0.82rem;color:var(--smoke);margin-top:8px;">Client: ${appt.client} · Barber: ${appt.barber}</div>
     </div>
     <div class="field"><label>Tip ($)</label><input id="co-tip" type="number" placeholder="0" value="0"></div>
     <div class="field" style="margin-top:0.75rem"><label>Payment Method</label>
-      <select id="co-method"><option>Cash</option><option>Card</option><option>Cash App</option><option>Venmo</option><option>Zelle</option></select>
-    </div>`;
+      <select id="co-method"><option>Cash</option><option>Card (Stripe)</option><option>Cash App</option><option>Venmo</option><option>Zelle</option></select>
+    </div>
+    <p style="font-size:0.72rem;color:var(--smoke);margin-top:0.5rem;">Card (Stripe): local demo records the sale; real charges need a backend — see SaaS doc bundled with BradleyVS App Dashboard.</p>`;
   openModal('checkoutModal');
 }
 
@@ -701,9 +779,52 @@ function completeCheckout() {
   if(!appt) return;
   const tip = parseFloat(document.getElementById('co-tip').value)||0;
   const method = document.getElementById('co-method').value;
-  appt.status='Completed'; appt.tip=tip;
-  DB.transactions.push({date:new Date().toLocaleDateString(),client:appt.client,service:appt.service,barber:appt.barber,amount:appt.price+tip,method,tip});
-  DB.weeklyRevenue[new Date().getDay()] += appt.price+tip;
+  const taxR = parseFloat(DB.settings.taxRate) || 0;
+  const tax = Math.round(appt.price * (taxR / 100) * 100) / 100;
+  const total = Math.round((appt.price + tax + tip) * 100) / 100;
+
+  appt.status = 'Completed';
+  appt.tip = tip;
+  appt.tax = tax;
+  appt.grandTotal = total;
+
+  DB.transactions.push({
+    date: new Date().toLocaleDateString(),
+    client: appt.client,
+    service: appt.service,
+    barber: appt.barber,
+    amount: total,
+    method,
+    tip,
+    tax
+  });
+  DB.weeklyRevenue[new Date().getDay()] += total;
+
+  const bName = appt.barber;
+  if (bName && bName !== 'Any Available' && bName !== 'Next Available') {
+    const barber = DB.barbers.find(b => b.name === bName);
+    if (barber) {
+      barber.cuts = (barber.cuts || 0) + 1;
+      const pct = parseFloat(barber.commission) || 0;
+      barber.earned = Math.round((barber.earned + appt.price * (pct / 100)) * 100) / 100;
+    }
+  }
+
+  const digits = (p) => (p || '').replace(/\D/g, '');
+  const aphone = digits(appt.phone);
+  let client = DB.clients.find(c => c.name === appt.client && (!aphone || digits(c.phone) === aphone));
+  if (!client) client = DB.clients.find(c => c.name === appt.client);
+  if (client) {
+    client.visits = (client.visits || 0) + 1;
+    client.spent = Math.round((client.spent + total) * 100) / 100;
+    client.lastVisit = new Date().toLocaleDateString();
+  }
+
+  if (method === 'Card (Stripe)') {
+    console.log('[BarberBook] Stripe: record local payment', total, appt.service, '(use Checkout Sessions + webhook for SaaS)');
+  }
+
+  saveDB();
   closeModal('checkoutModal'); renderAppointments(); updateDashboard(); renderReports();
 }
 
@@ -721,6 +842,7 @@ function addWalkin() {
   };
   DB.walkin.push(wi); renderWalkin(); updateDashboard();
   document.getElementById('wi-name').value=''; document.getElementById('wi-phone').value='';
+  saveDB();
 }
 
 function renderWalkin() {
@@ -742,6 +864,7 @@ function saveClient() {
   DB.clients.push({id:Date.now(),name:document.getElementById('cl-name').value,phone:document.getElementById('cl-phone').value,email:document.getElementById('cl-email').value,barber:document.getElementById('cl-barber').value,notes:document.getElementById('cl-notes').value,visits:0,spent:0,lastVisit:'—'});
   closeModal('clientModal'); renderClients('');
   ['cl-name','cl-phone','cl-email','cl-notes'].forEach(id=>document.getElementById(id).value='');
+  saveDB();
 }
 
 function renderClients(search) {
@@ -756,13 +879,14 @@ function renderClients(search) {
     <td><button class="btn btn-danger btn-sm" onclick="deleteClient(${c.id})">✕</button></td>
   </tr>`).join('');
 }
-function deleteClient(id){DB.clients=DB.clients.filter(c=>c.id!==id);renderClients('');}
+function deleteClient(id){DB.clients=DB.clients.filter(c=>c.id!==id);renderClients('');saveDB();}
 
 // ── BARBERS ───────────────────────────────────────────────────────────────────
 function saveBarber() {
   DB.barbers.push({id:Date.now(),name:document.getElementById('br-name').value,phone:document.getElementById('br-phone').value,specialty:document.getElementById('br-specialty').value,commission:document.getElementById('br-commission').value,cuts:0,earned:0});
   closeModal('barberModal'); renderBarbers(); populateBarberSelects();
   ['br-name','br-phone','br-specialty'].forEach(id=>document.getElementById(id).value='');
+  saveDB();
 }
 
 function renderBarbers() {
@@ -782,7 +906,7 @@ function renderBarbers() {
       <button class="btn btn-danger btn-sm" style="width:100%" onclick="deleteBarber(${b.id})">Remove Barber</button>
     </div>`).join('');
 }
-function deleteBarber(id){DB.barbers=DB.barbers.filter(b=>b.id!==id);renderBarbers();}
+function deleteBarber(id){DB.barbers=DB.barbers.filter(b=>b.id!==id);renderBarbers();saveDB();}
 
 // ── SERVICES ──────────────────────────────────────────────────────────────────
 function addService() {
@@ -790,8 +914,9 @@ function addService() {
   const price=parseFloat(document.getElementById('svc-price').value)||0;
   if(!name) return;
   DB.services.push({id:Date.now(),name,price,duration:parseInt(document.getElementById('svc-duration').value)||30,cat:document.getElementById('svc-cat').value});
-  renderServices();
+  renderServices(); populateServiceSelects();
   ['svc-name','svc-price','svc-duration'].forEach(id=>document.getElementById(id).value='');
+  saveDB();
 }
 
 function renderServices() {
@@ -801,13 +926,14 @@ function renderServices() {
       <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'Pacifico',cursive;font-size:1.2rem;color:var(--red)">$${s.price}</span><button class="btn btn-danger btn-sm" onclick="deleteService(${s.id})">✕</button></div>
     </div>`).join('');
 }
-function deleteService(id){DB.services=DB.services.filter(s=>s.id!==id);renderServices();}
+function deleteService(id){DB.services=DB.services.filter(s=>s.id!==id);renderServices();populateServiceSelects();saveDB();}
 
 // ── INVENTORY ─────────────────────────────────────────────────────────────────
 function addInventory() {
   DB.inventory.push({id:Date.now(),name:document.getElementById('inv-name').value,cat:document.getElementById('inv-cat').value,qty:parseInt(document.getElementById('inv-qty').value)||0,low:parseInt(document.getElementById('inv-low').value)||2,cost:parseFloat(document.getElementById('inv-cost').value)||0,supplier:document.getElementById('inv-supplier').value});
   renderInventory();
   ['inv-name','inv-qty','inv-low','inv-cost','inv-supplier'].forEach(id=>document.getElementById(id).value='');
+  saveDB();
 }
 
 function renderInventory() {
@@ -823,8 +949,8 @@ function renderInventory() {
     </div>`;
   }).join('');
 }
-function updateQty(id,val){const i=DB.inventory.find(x=>x.id===id);if(i)i.qty=parseInt(val)||0;renderInventory();}
-function deleteInventory(id){DB.inventory=DB.inventory.filter(i=>i.id!==id);renderInventory();}
+function updateQty(id,val){const i=DB.inventory.find(x=>x.id===id);if(i)i.qty=parseInt(val)||0;renderInventory();saveDB();}
+function deleteInventory(id){DB.inventory=DB.inventory.filter(i=>i.id!==id);renderInventory();saveDB();}
 
 // ── REPORTS ───────────────────────────────────────────────────────────────────
 function renderReports() {
@@ -857,11 +983,16 @@ function renderReports() {
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function lineTotal(a) {
+  if (a.grandTotal != null) return a.grandTotal;
+  return a.price + (a.tip || 0) + (a.tax || 0);
+}
+
 function updateDashboard() {
   const todayStr=new Date().toISOString().split('T')[0];
   const todayAppts=[...DB.appointments,...DB.walkin].filter(a=>a.date===todayStr);
   const completed=todayAppts.filter(a=>a.status==='Completed');
-  const rev=completed.reduce((s,a)=>s+a.price+(a.tip||0),0);
+  const rev=completed.reduce((s,a)=>s+lineTotal(a),0);
   const queue=DB.walkin.filter(w=>w.status==='Scheduled').length;
 
   document.getElementById('hdr-today').textContent='$'+rev.toFixed(0);
@@ -880,7 +1011,7 @@ function updateDashboard() {
       <div class="slot-time">${a.time||'Walk-In'}</div>
       <div><div class="slot-client">${a.client}</div><div class="slot-service">${a.service} · ${a.barber}</div></div>
       <span class="badge ${a.status==='Completed'?'badge-green':a.status==='No-Show'?'badge-red':'badge-yellow'}" style="margin-left:auto;">${a.status}</span>
-      <div class="slot-price">$${a.price}</div>
+      <div class="slot-price">${a.status==='Completed'?'$'+lineTotal(a).toFixed(0):'$'+a.price}</div>
     </div>`).join(''):
     '<div style="color:var(--smoke);font-style:italic;font-size:0.85rem;padding:1rem 0;">No appointments today.</div>';
 
@@ -913,7 +1044,75 @@ function updateDashboard() {
     '<div style="color:var(--smoke);font-style:italic;font-size:0.82rem;">Add barbers to see performance.</div>';
 }
 
-function saveSettings(){alert('Settings saved! ✓');}
+function loadSettingsForm() {
+  const s = DB.settings;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v != null ? v : ''; };
+  set('set-name', s.shopName);
+  set('set-phone', s.phone);
+  set('set-addr', s.address);
+  set('set-open', s.open);
+  set('set-close', s.close);
+  set('taxRate', s.taxRate != null ? s.taxRate : 0);
+}
+
+function saveSettings() {
+  DB.settings.shopName = document.getElementById('set-name').value;
+  DB.settings.phone = document.getElementById('set-phone').value;
+  DB.settings.address = document.getElementById('set-addr').value;
+  DB.settings.open = document.getElementById('set-open').value;
+  DB.settings.close = document.getElementById('set-close').value;
+  DB.settings.taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+  saveDB();
+  alert('Settings saved! ✓');
+}
+
+function exportBarberBookData() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'barberbook-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importBarberBookData(ev) {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const p = JSON.parse(reader.result);
+      if (!p || typeof p !== 'object') throw new Error('Invalid file');
+      if (!confirm('Replace ALL BarberBook data on this browser with this backup?')) return;
+      const merged = JSON.parse(JSON.stringify(DEFAULT_BB));
+      Object.keys(DEFAULT_BB).forEach(k => {
+        if (p[k] !== undefined) merged[k] = JSON.parse(JSON.stringify(p[k]));
+      });
+      if (!merged.users || !merged.users.length) merged.users = DEFAULT_BB.users;
+      if (!Array.isArray(merged.weeklyRevenue) || merged.weeklyRevenue.length !== 7) {
+        merged.weeklyRevenue = [...DEFAULT_BB.weeklyRevenue];
+      }
+      DB = merged;
+      saveDB();
+      loadSettingsForm();
+      populateServiceSelects();
+      populateBarberSelects();
+      renderServices();
+      renderInventory();
+      renderClients('');
+      renderBarbers();
+      renderAppointments();
+      renderWalkin();
+      renderReports();
+      updateDashboard();
+      alert('Import complete.');
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+    ev.target.value = '';
+  };
+  reader.readAsText(f);
+}
 
 // INIT — login screen first (same pattern as NailGlow Studio)
 window.addEventListener('DOMContentLoaded', function() {
