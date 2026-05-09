@@ -535,6 +535,14 @@ td{padding:10px 14px;font-size:0.85rem;}
         <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--steel);margin-bottom:0.5rem;">Tax Rate</div>
         <div style="display:flex;align-items:center;gap:8px;"><input style="width:80px;background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:0.875rem;" type="number" id="taxRate" value="0" placeholder="0"><span style="color:var(--smoke);">%</span></div>
       </div>
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--cream);display:flex;flex-direction:column;gap:0.75rem;">
+        <div class="field"><label>Shop Email</label><input id="set-email" placeholder="bookings@barberbookpro.com"></div>
+        <div class="field"><label>Public Booking URL</label><input id="set-booking-url" placeholder="https://your-booking-page.example.com"></div>
+        <div class="field"><label>Stripe Payment Link</label><input id="set-stripe-url" placeholder="https://buy.stripe.com/your-link"></div>
+        <div class="field"><label>Cash App Handle</label><input id="set-cashapp" placeholder="$freshcuts"></div>
+        <div class="field"><label>Venmo Username</label><input id="set-venmo" placeholder="freshcutsbarber"></div>
+        <div class="field"><label>Zelle Email or Phone</label><input id="set-zelle" placeholder="pay@freshcuts.com"></div>
+      </div>
     </div>
     <div class="card" style="margin-top:1.5rem;">
       <div class="card-hdr"><span class="card-title">Data backup (SaaS-ready export)</span></div>
@@ -582,10 +590,16 @@ const DEFAULT_BB = {
   settings: {
     shopName: 'Fresh Cuts Barbershop',
     phone: '',
+    email: '',
     address: '',
     open: '09:00',
     close: '19:00',
-    taxRate: 0
+    taxRate: 0,
+    bookingUrl: '',
+    stripeUrl: '',
+    cashApp: '',
+    venmo: '',
+    zelle: ''
   },
   weeklyRevenue: [0, 0, 0, 0, 0, 0, 0]
 };
@@ -752,6 +766,167 @@ document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>
 
 function serviceMenuLabel(s) { return s.name + ' — $' + s.price; }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function copyText(text, successMsg) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    alert(successMsg || 'Copied to clipboard.');
+  } catch (err) {
+    alert('Copy failed. You can copy it manually.');
+  }
+}
+
+function buildAppointmentConfirmation(appt) {
+  const bookingUrl = DB.settings.bookingUrl || window.location.href;
+  const parts = [
+    DB.settings.shopName || 'BarberBook Pro',
+    'Appointment booked for ' + appt.client,
+    appt.service + ' with ' + appt.barber,
+    appt.date + ' at ' + appt.time,
+    'Price: $' + (appt.price || 0),
+    bookingUrl ? 'Booking link: ' + bookingUrl : '',
+    DB.settings.phone ? 'Shop: ' + DB.settings.phone : ''
+  ];
+  return parts.filter(Boolean).join('\n');
+}
+
+function shareAppointment(id) {
+  const appt = DB.appointments.find(a=>a.id===id) || DB.walkin.find(a=>a.id===id);
+  if (!appt) return;
+  const text = buildAppointmentConfirmation(appt);
+  if (navigator.share) {
+    navigator.share({
+      title: (DB.settings.shopName || 'BarberBook Pro') + ' Appointment',
+      text
+    }).catch(()=>copyText(text, 'Appointment details copied.'));
+    return;
+  }
+  copyText(text, 'Appointment details copied.');
+}
+
+function getPaymentMethodConfig(method) {
+  if (method === 'Card (Stripe)') {
+    return {
+      label: 'Stripe',
+      value: DB.settings.stripeUrl || '',
+      url: DB.settings.stripeUrl || ''
+    };
+  }
+  if (method === 'Cash App') {
+    const handle = (DB.settings.cashApp || '').trim();
+    return {
+      label: 'Cash App',
+      value: handle,
+      url: handle ? 'https://cash.app/' + handle.replace(/^\$/, '') : ''
+    };
+  }
+  if (method === 'Venmo') {
+    const handle = (DB.settings.venmo || '').trim();
+    return {
+      label: 'Venmo',
+      value: handle,
+      url: handle ? 'https://venmo.com/' + handle.replace(/^@/, '') : ''
+    };
+  }
+  if (method === 'Zelle') {
+    return {
+      label: 'Zelle',
+      value: (DB.settings.zelle || '').trim(),
+      url: ''
+    };
+  }
+  return { label: method, value: '', url: '' };
+}
+
+function buildPaymentMessage(appt, total, method) {
+  const cfg = getPaymentMethodConfig(method);
+  return [
+    (DB.settings.shopName || 'BarberBook Pro') + ' payment request',
+    'Client: ' + appt.client,
+    'Service: ' + appt.service,
+    'Total due: $' + total.toFixed(2),
+    method + (cfg.value ? ': ' + cfg.value : ''),
+    DB.settings.phone ? 'Shop phone: ' + DB.settings.phone : '',
+    DB.settings.email ? 'Shop email: ' + DB.settings.email : ''
+  ].filter(Boolean).join('\n');
+}
+
+function renderPaymentInstructions(appt, total) {
+  const method = document.getElementById('co-method')?.value || 'Cash';
+  const cfg = getPaymentMethodConfig(method);
+  const host = document.getElementById('paymentAssist');
+  if (!host) return;
+
+  if (method === 'Cash') {
+    host.innerHTML = '<div style="font-size:0.78rem;color:var(--smoke);">Cash selected. Complete checkout after collecting payment.</div>';
+    return;
+  }
+
+  const line = cfg.value
+    ? '<div style="font-size:0.82rem;color:var(--smoke);margin:6px 0 0;">' + escapeHtml(method) + ': ' + escapeHtml(cfg.value) + '</div>'
+    : '<div style="font-size:0.82rem;color:#b91c1c;margin:6px 0 0;">Add your ' + escapeHtml(method) + ' details in Settings before using this method live.</div>';
+  const openBtn = cfg.url
+    ? '<button class="btn btn-primary btn-sm" type="button" onclick="openPaymentLink()">Open ' + escapeHtml(method) + '</button>'
+    : '';
+
+  host.innerHTML = '' +
+    '<div style="padding:0.9rem;border:1px solid var(--border);border-radius:8px;background:var(--paper);margin-top:0.85rem;">' +
+      '<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--steel);">Payment handoff</div>' +
+      '<div style="font-size:0.92rem;font-weight:700;margin-top:4px;">$' + total.toFixed(2) + ' due via ' + escapeHtml(method) + '</div>' +
+      line +
+      '<div style="display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.9rem;">' +
+        openBtn +
+        '<button class="btn btn-gold btn-sm" type="button" onclick="copyPaymentRequest()">Copy payment request</button>' +
+        '<button class="btn btn-ghost btn-sm" type="button" onclick="copyBookingLink()">Copy booking link</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function openPaymentLink() {
+  const appt = DB.appointments.find(a=>a.id===checkoutApptId)||DB.walkin.find(a=>a.id===checkoutApptId);
+  if (!appt) return;
+  const method = document.getElementById('co-method')?.value || 'Cash';
+  const cfg = getPaymentMethodConfig(method);
+  if (!cfg.url) {
+    alert('Add your ' + method + ' details in Settings first.');
+    return;
+  }
+  window.open(cfg.url, '_blank', 'noopener');
+}
+
+function copyPaymentRequest() {
+  const appt = DB.appointments.find(a=>a.id===checkoutApptId)||DB.walkin.find(a=>a.id===checkoutApptId);
+  if (!appt) return;
+  const tip = parseFloat(document.getElementById('co-tip')?.value)||0;
+  const taxR = parseFloat(DB.settings.taxRate) || 0;
+  const tax = Math.round(appt.price * (taxR / 100) * 100) / 100;
+  const total = Math.round((appt.price + tax + tip) * 100) / 100;
+  const method = document.getElementById('co-method')?.value || 'Cash';
+  copyText(buildPaymentMessage(appt, total, method), 'Payment request copied.');
+}
+
+function copyBookingLink() {
+  const text = DB.settings.bookingUrl || window.location.href;
+  copyText(text, 'Booking link copied.');
+}
+
 function populateServiceSelects() {
   ['appt-service', 'wi-service'].forEach(id => {
     const sel = document.getElementById(id);
@@ -781,10 +956,15 @@ function populateBarberSelects() {
 // ── APPOINTMENTS ──────────────────────────────────────────────────────────────
 function saveAppt() {
   const svc = document.getElementById('appt-service').value;
+  if (!svc) {
+    alert('Add a service first.');
+    return;
+  }
+  const clientName = document.getElementById('appt-client').value.trim();
   const price = parseFloat(svc.match(/\$(\d+)/)?.[1]||0);
-  DB.appointments.push({
+  const appt = {
     id: Date.now(),
-    client: document.getElementById('appt-client').value||'Guest',
+    client: clientName || 'Guest',
     phone: document.getElementById('appt-phone').value,
     service: svc.split(' — ')[0],
     price,
@@ -793,11 +973,13 @@ function saveAppt() {
     time: document.getElementById('appt-time').value,
     notes: document.getElementById('appt-notes').value,
     status: 'Scheduled'
-  });
+  };
+  DB.appointments.push(appt);
   closeModal('apptModal');
   updateDashboard(); renderAppointments();
   ['appt-client','appt-phone','appt-notes'].forEach(id=>document.getElementById(id).value='');
   saveDB();
+  copyText(buildAppointmentConfirmation(appt), 'Appointment confirmation copied.');
 }
 
 function renderAppointments() {
@@ -819,6 +1001,7 @@ function renderAppointments() {
     <td><span class="badge ${a.status==='Completed'?'badge-green':a.status==='No-Show'?'badge-red':'badge-yellow'}">${a.status}</span></td>
     <td style="display:flex;gap:4px;">
       ${a.status==='Scheduled'?`<button class="btn btn-gold btn-sm" onclick="checkout(${a.id})">Checkout</button>`:''} 
+      <button class="btn btn-ghost btn-sm" onclick="shareAppointment(${a.id})">Share</button>
       <button class="btn btn-danger btn-sm" onclick="cancelAppt(${a.id})">✕</button>
     </td>
   </tr>`).join('');
@@ -846,12 +1029,24 @@ function checkout(id) {
       ${taxLine}
       <div style="font-size:0.82rem;color:var(--smoke);margin-top:8px;">Client: ${appt.client} · Barber: ${appt.barber}</div>
     </div>
-    <div class="field"><label>Tip ($)</label><input id="co-tip" type="number" placeholder="0" value="0"></div>
+    <div class="field"><label>Tip ($)</label><input id="co-tip" type="number" placeholder="0" value="0" oninput="updateCheckoutAssist()"></div>
     <div class="field" style="margin-top:0.75rem"><label>Payment Method</label>
-      <select id="co-method"><option>Cash</option><option>Card (Stripe)</option><option>Cash App</option><option>Venmo</option><option>Zelle</option></select>
+      <select id="co-method" onchange="updateCheckoutAssist()"><option>Cash</option><option>Card (Stripe)</option><option>Cash App</option><option>Venmo</option><option>Zelle</option></select>
     </div>
-    <p style="font-size:0.72rem;color:var(--smoke);margin-top:0.5rem;">Card (Stripe): local demo records the sale; real charges need a backend — see SaaS doc bundled with BradleyVS App Dashboard.</p>`;
+    <div id="paymentAssist"></div>
+    <p style="font-size:0.72rem;color:var(--smoke);margin-top:0.5rem;">This app can open your real payment links and copy a payment request. Full custom Stripe charging still needs a backend.</p>`;
   openModal('checkoutModal');
+  updateCheckoutAssist();
+}
+
+function updateCheckoutAssist() {
+  const appt = DB.appointments.find(a=>a.id===checkoutApptId)||DB.walkin.find(a=>a.id===checkoutApptId);
+  if (!appt) return;
+  const tip = parseFloat(document.getElementById('co-tip')?.value)||0;
+  const taxR = parseFloat(DB.settings.taxRate) || 0;
+  const tax = Math.round(appt.price * (taxR / 100) * 100) / 100;
+  const total = Math.round((appt.price + tax + tip) * 100) / 100;
+  renderPaymentInstructions(appt, total);
 }
 
 function completeCheckout() {
@@ -936,6 +1131,7 @@ function renderWalkin() {
       <div style="flex:1"><div style="font-weight:600">${w.client}</div><div style="font-size:0.75rem;color:var(--smoke)">${w.service} · ${w.barber} · In at ${w.queued}</div></div>
       <div style="font-weight:700;color:var(--steel)">$${w.price}</div>
       <button class="btn btn-gold btn-sm" onclick="checkout(${w.id})">Checkout</button>
+      <button class="btn btn-ghost btn-sm" onclick="shareAppointment(${w.id})">Share</button>
     </div>`).join('');
 }
 
@@ -1129,19 +1325,31 @@ function loadSettingsForm() {
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v != null ? v : ''; };
   set('set-name', s.shopName);
   set('set-phone', s.phone);
+  set('set-email', s.email);
   set('set-addr', s.address);
   set('set-open', s.open);
   set('set-close', s.close);
   set('taxRate', s.taxRate != null ? s.taxRate : 0);
+  set('set-booking-url', s.bookingUrl);
+  set('set-stripe-url', s.stripeUrl);
+  set('set-cashapp', s.cashApp);
+  set('set-venmo', s.venmo);
+  set('set-zelle', s.zelle);
 }
 
 function saveSettings() {
   DB.settings.shopName = document.getElementById('set-name').value;
   DB.settings.phone = document.getElementById('set-phone').value;
+  DB.settings.email = document.getElementById('set-email').value;
   DB.settings.address = document.getElementById('set-addr').value;
   DB.settings.open = document.getElementById('set-open').value;
   DB.settings.close = document.getElementById('set-close').value;
   DB.settings.taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+  DB.settings.bookingUrl = document.getElementById('set-booking-url').value;
+  DB.settings.stripeUrl = document.getElementById('set-stripe-url').value;
+  DB.settings.cashApp = document.getElementById('set-cashapp').value;
+  DB.settings.venmo = document.getElementById('set-venmo').value;
+  DB.settings.zelle = document.getElementById('set-zelle').value;
   saveDB();
   alert('Settings saved! ✓');
 }
