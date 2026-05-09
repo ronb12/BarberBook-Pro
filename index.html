@@ -912,6 +912,7 @@ td{padding:10px 14px;font-size:0.85rem;}
 const ROLES = { owner: 'Owner', manager: 'Manager', barber: 'Barber' };
 const STORE_KEY = 'barberbook_pro_v1';
 const CUSTOMER_SESSION_KEY = 'barberbook_customer_session_v1';
+const STATE_API_PATH = '/api/state';
 
 /** Default state (new installs + merge baseline). */
 const DEFAULT_BB = {
@@ -958,6 +959,8 @@ let currentUser = null;
 let checkoutApptId = null;
 let currentCustomerSession = null;
 let customerRescheduleId = null;
+let remoteSyncTimer = null;
+let remoteSyncPromise = Promise.resolve();
 
 function loadDB() {
   DB = JSON.parse(JSON.stringify(DEFAULT_BB));
@@ -988,6 +991,7 @@ function saveDB() {
   } catch (e) {
     console.warn('BarberBook saveDB:', e);
   }
+  queueRemoteSync();
 }
 
 loadDB();
@@ -1097,6 +1101,92 @@ function loadCustomerSession() {
     console.warn('BarberBook customer session load:', e);
     currentCustomerSession = null;
   }
+}
+
+function canUseRemoteState() {
+  return typeof window !== 'undefined' &&
+    typeof window.fetch === 'function' &&
+    /^https?:$/i.test(window.location.protocol);
+}
+
+function applyRuntimeRefresh() {
+  if (currentUser) {
+    afterLoginInit();
+    renderAppointments();
+    renderClients(document.getElementById('clientSearch')?.value || '');
+    renderBarbers();
+    renderWalkin();
+    renderReports();
+  }
+  if (document.getElementById('customerPortalScreen') &&
+      getComputedStyle(document.getElementById('customerPortalScreen')).display !== 'none') {
+    loadCustomerPortal();
+  }
+  updateDashboard();
+}
+
+async function hydrateRemoteState() {
+  if (!canUseRemoteState()) return;
+  try {
+    const res = await fetch(STATE_API_PATH, { headers: { 'accept': 'application/json' } });
+    if (!res.ok) return;
+    const payload = await res.json();
+    if (payload && payload.ok && payload.state && typeof payload.state === 'object') {
+      DB = JSON.parse(JSON.stringify(DEFAULT_BB));
+      const p = payload.state;
+      DB.users = (p.users && p.users.length) ? p.users : DEFAULT_BB.users;
+      DB.appointments = p.appointments || [];
+      DB.clients = p.clients || [];
+      DB.barbers = p.barbers || [];
+      DB.walkin = p.walkin || [];
+      DB.services = (p.services && p.services.length) ? p.services : DEFAULT_BB.services;
+      DB.inventory = (p.inventory && p.inventory.length) ? p.inventory : DEFAULT_BB.inventory;
+      DB.transactions = p.transactions || [];
+      DB.settings = Object.assign({}, DEFAULT_BB.settings, p.settings || {});
+      DB.weeklyRevenue = Array.isArray(p.weeklyRevenue) && p.weeklyRevenue.length === 7
+        ? p.weeklyRevenue
+        : [...DEFAULT_BB.weeklyRevenue];
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+      } catch (e) {
+        console.warn('BarberBook hydrate local cache:', e);
+      }
+      applyRuntimeRefresh();
+      return;
+    }
+    const hasLocalData =
+      DB.appointments.length || DB.clients.length || DB.barbers.length || DB.walkin.length || DB.transactions.length;
+    if (hasLocalData) {
+      await syncStateToRemote();
+    }
+  } catch (e) {
+    console.warn('BarberBook hydrateRemoteState:', e);
+  }
+}
+
+async function syncStateToRemote() {
+  if (!canUseRemoteState()) return false;
+  try {
+    const res = await fetch(STATE_API_PATH, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ state: DB })
+    });
+    return res.ok;
+  } catch (e) {
+    console.warn('BarberBook syncStateToRemote:', e);
+    return false;
+  }
+}
+
+function queueRemoteSync() {
+  if (!canUseRemoteState()) return;
+  if (remoteSyncTimer) {
+    clearTimeout(remoteSyncTimer);
+  }
+  remoteSyncTimer = setTimeout(() => {
+    remoteSyncPromise = remoteSyncPromise.then(() => syncStateToRemote());
+  }, 250);
 }
 
 function portalIdentifierMatches(client, identifier) {
@@ -2297,7 +2387,7 @@ function importBarberBookData(ev) {
 }
 
 // INIT — login screen first (same pattern as NailGlow Studio)
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', async function() {
   try {
     if (window.location.hash === '#customer-portal') {
       showCustomerPortal();
@@ -2307,6 +2397,7 @@ window.addEventListener('DOMContentLoaded', function() {
     const d = document.getElementById('appt-date');
     if (d) d.value = new Date().toISOString().split('T')[0];
     setCustomerPortalDefaults();
+    await hydrateRemoteState();
   } catch (e) {
     console.warn('BarberBook init:', e);
   }

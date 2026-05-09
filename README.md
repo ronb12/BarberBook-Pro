@@ -36,6 +36,7 @@ git push -u origin main
 1. [New project → Import Git Repository](https://vercel.com/new) → pick **`BarberBook-Pro`**.
 2. Framework preset: **Other** (static). Root: `./` · Build: leave empty · Output: `.` (or default).
 3. Deploy. Production URL is usually **`https://barberbook-pro.vercel.app`** (or with a team suffix).
+4. Set **`DATABASE_URL`** in Vercel to a Neon pooled Postgres connection string so the `/api/state` and `/api/health` serverless routes persist app state in Neon instead of browser-only storage.
 
 Add that URL to the main **BVS Dashboard** app row for BarberBook Pro if it differs from the default in the repo.
 
