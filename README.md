@@ -37,6 +37,7 @@ git push -u origin main
 2. Framework preset: **Other** (static). Root: `./` · Build: leave empty · Output: `.` (or default).
 3. Deploy. Production URL is usually **`https://barberbook-pro.vercel.app`** (or with a team suffix).
 4. Set **`DATABASE_URL`** in Vercel to a Neon pooled Postgres connection string so the `/api/state` and `/api/health` serverless routes persist app state in Neon instead of browser-only storage.
+5. If your Vercel team blocks **Development** sensitive environment variables, use a local **`.env.local`** file for development and reserve Vercel envs for **Production** and **Preview**.
 
 Add that URL to the main **BVS Dashboard** app row for BarberBook Pro if it differs from the default in the repo.
 
@@ -48,3 +49,11 @@ npx --yes serve .
 ```
 
 Open the URL shown (often http://localhost:3000).
+
+## Local development env
+
+Create a local `.env.local` file from `.env.example` when you need to run serverless handlers against Neon outside Vercel:
+
+```bash
+cp .env.example .env.local
+```
