@@ -810,8 +810,13 @@ function saveDB() {
 
 loadDB();
 
+function hasAnyConfiguredPassword() {
+  return DB.users.some(u => typeof u.password === 'string' && u.password.trim() !== '');
+}
+
 function needsOwnerPasswordSetup() {
-  return DB.users.some(u => u.role === 'owner' && (u.password == null || u.password === ''));
+  return !hasAnyConfiguredPassword() &&
+    DB.users.some(u => u.role === 'owner' && (u.password == null || u.password === ''));
 }
 
 // ── LOGIN (match NailGlow: gate app until sign-in) ─────────────────────────────
@@ -905,7 +910,7 @@ function doLogin() {
   const errEl = document.getElementById('login-err');
   const user = DB.users.find(u => u.email.toLowerCase() === email);
   if (!user || user.password == null || user.password === '') {
-    if (errEl) errEl.textContent = 'Invalid email or password, or complete owner setup first.';
+    if (errEl) errEl.textContent = 'Invalid email or password.';
     return;
   }
   if (user.password !== pass) {
