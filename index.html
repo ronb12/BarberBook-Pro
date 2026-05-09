@@ -64,6 +64,31 @@ body{font-family:'Nunito',sans-serif;background:var(--paper);color:var(--ink);mi
 .cta-actions{display:flex;flex-wrap:wrap;gap:0.9rem;margin-top:1.4rem;}
 .link-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:4px;border:1px solid rgba(226,232,240,0.35);color:#ffffff;text-decoration:none;font-weight:700;}
 .link-btn:hover{border-color:#ffffff;}
+.portal-screen{display:none;min-height:100vh;background:
+  radial-gradient(circle at top left, rgba(11,94,215,0.18), transparent 26%),
+  linear-gradient(180deg,#f5f8fc 0%,#ebf1f8 100%);}
+.portal-header{background:#11233b;border-bottom:1px solid rgba(193,206,223,0.45);}
+.portal-header-inner{max-width:1200px;margin:0 auto;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.portal-main{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 3rem;}
+.portal-grid{display:grid;grid-template-columns:minmax(300px,0.9fr) minmax(0,1.1fr);gap:1.25rem;align-items:start;}
+.portal-stack{display:flex;flex-direction:column;gap:1.25rem;}
+.portal-shell{background:#ffffff;border:1px solid var(--border);border-radius:8px;padding:1.4rem;box-shadow:0 10px 24px rgba(10,22,40,0.06);}
+.portal-shell h3{font-size:1.1rem;color:var(--steel);}
+.portal-shell p{margin-top:0.45rem;color:#55667b;line-height:1.65;font-size:0.92rem;}
+.portal-mini{font-size:0.74rem;color:var(--smoke);text-transform:uppercase;letter-spacing:0.08em;}
+.portal-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.75rem;margin-top:1rem;}
+.portal-kpi{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:0.9rem;}
+.portal-kpi strong{display:block;font-size:1.4rem;color:var(--ink);}
+.portal-kpi span{display:block;margin-top:0.22rem;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--smoke);}
+.portal-appointment{padding:1rem;border:1px solid var(--border);border-radius:8px;background:#ffffff;margin-bottom:0.85rem;}
+.portal-appointment:last-child{margin-bottom:0;}
+.portal-appointment-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;}
+.portal-appointment-title{font-weight:800;color:var(--ink);}
+.portal-appointment-meta{margin-top:0.3rem;font-size:0.84rem;color:var(--smoke);line-height:1.55;}
+.portal-appointment-actions{display:flex;flex-wrap:wrap;gap:0.55rem;margin-top:0.9rem;}
+.portal-empty{color:var(--smoke);font-style:italic;font-size:0.86rem;padding:0.35rem 0;}
+.portal-banner{background:linear-gradient(135deg,#132540,#0b5ed7);color:#ffffff;border-radius:8px;padding:1.4rem;border:1px solid rgba(255,255,255,0.12);}
+.portal-banner p{color:#dde7f4;}
 
 /* Stripe pattern header */
 header{background:var(--ink);position:sticky;top:0;z-index:100;border-bottom:4px solid var(--red);}
@@ -186,6 +211,7 @@ td{padding:10px 14px;font-size:0.85rem;}
 @media(max-width:900px){
   .landing-hero,.feature-grid,.workflow-grid{grid-template-columns:1fr;}
   .band-inner{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .portal-grid{grid-template-columns:1fr;}
 }
 @media(max-width:640px){
   .landing-header-inner{padding:0.9rem 1rem;}
@@ -193,6 +219,8 @@ td{padding:10px 14px;font-size:0.85rem;}
   .landing-main section,.landing-hero,.section-wrap{padding-left:1rem;padding-right:1rem;}
   .band-inner{grid-template-columns:1fr 1fr;padding-left:1rem;padding-right:1rem;}
   .hero-panel-kpis{grid-template-columns:1fr;}
+  .portal-main,.portal-header-inner{padding-left:1rem;padding-right:1rem;}
+  .portal-kpis{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -209,6 +237,7 @@ td{padding:10px 14px;font-size:0.85rem;}
         <a class="landing-link" href="#features">Features</a>
         <a class="landing-link" href="#workflow">Workflow</a>
         <a class="landing-link" href="#launch">Launch</a>
+        <button type="button" class="btn btn-ghost" onclick="showCustomerPortal()">Customer Portal</button>
         <button type="button" class="btn btn-primary" onclick="beginSignIn()">Owner Sign In</button>
       </div>
     </div>
@@ -221,10 +250,11 @@ td{padding:10px 14px;font-size:0.85rem;}
         <h1>Run the chair, the schedule, and the money from one place.</h1>
         <p>BarberBook Pro gives barbershops a polished home for appointments, walk-ins, client history, services, checkout, and daily reporting. It is designed to help a busy shop stay organized without feeling like office software.</p>
         <div class="hero-actions">
+          <button type="button" class="btn btn-gold" onclick="showCustomerPortal()">Book Or Manage My Visit</button>
           <button type="button" class="btn btn-primary" onclick="beginSignIn()">Open The Shop Dashboard</button>
           <a class="link-btn" href="#features">See What It Handles</a>
         </div>
-        <div class="hero-note">Appointments, walk-ins, payouts, barbers, inventory, and reports</div>
+        <div class="hero-note">Customer booking, customer portal, appointments, walk-ins, payouts, barbers, inventory, and reports</div>
       </div>
       <div class="hero-panel">
         <div style="font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:#dbe4ef;">Inside The Workflow</div>
@@ -299,12 +329,120 @@ td{padding:10px 14px;font-size:0.85rem;}
         <h2 class="section-title" style="margin-top:0.45rem;color:#ffffff;">Ready to step into the shop dashboard?</h2>
         <p class="section-copy">Owners can sign in, add shop settings, wire payment details, and start using the full management app from the same install.</p>
         <div class="cta-actions">
+          <button type="button" class="btn btn-gold" onclick="showCustomerPortal()">Customer Portal</button>
           <button type="button" class="btn btn-primary" onclick="beginSignIn()">Owner Sign In</button>
           <a class="link-btn" href="#features">Review Features</a>
         </div>
       </div>
     </section>
   </main>
+</div>
+
+<div id="customerPortalScreen" class="portal-screen">
+  <div class="portal-header">
+    <div class="portal-header-inner">
+      <div class="logo">
+        <div class="logo-icon">💈</div>
+        <div><div class="logo-text">Customer Portal</div><div class="logo-sub">Book, manage, and track your visits</div></div>
+      </div>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <button type="button" class="btn btn-ghost" onclick="showLanding()">Back To Site</button>
+        <button type="button" class="btn btn-primary" onclick="beginSignIn()">Owner Sign In</button>
+      </div>
+    </div>
+  </div>
+  <div class="portal-main">
+    <div class="portal-grid">
+      <div class="portal-stack">
+        <div class="portal-banner">
+          <div class="portal-mini" style="color:#d6e4fb;">Customer access</div>
+          <div style="margin-top:0.45rem;font-family:'Nunito Sans',sans-serif;font-size:1.8rem;font-weight:800;line-height:1.1;">Book your next cut and manage upcoming visits.</div>
+          <p style="margin-top:0.7rem;font-size:0.95rem;">Customers can look up appointments by name and phone, update their preferences, reschedule, cancel, and book a new visit from the same place.</p>
+        </div>
+
+        <div class="portal-shell">
+          <div class="portal-mini">Find my account</div>
+          <h3 style="margin-top:0.4rem;">Look up your appointments</h3>
+          <p>Use the same name and phone number you booked with.</p>
+          <div class="form-grid" style="margin-top:1rem;">
+            <div class="field"><label>Full Name</label><input id="cust-lookup-name" placeholder="Jordan Miles"></div>
+            <div class="field"><label>Phone</label><input id="cust-lookup-phone" placeholder="(504) 555-0181"></div>
+          </div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem;">
+            <button type="button" class="btn btn-primary" onclick="findCustomerPortal()">Find My Bookings</button>
+            <button type="button" class="btn btn-ghost" onclick="clearCustomerPortal()">Clear</button>
+          </div>
+        </div>
+
+        <div class="portal-shell">
+          <div class="portal-mini">Book now</div>
+          <h3 style="margin-top:0.4rem;">Schedule a new appointment</h3>
+          <p>Choose a service, pick your time, and we’ll save it into the shop schedule immediately.</p>
+          <div class="form-grid" style="margin-top:1rem;">
+            <div class="field"><label>Full Name</label><input id="cust-book-name" placeholder="Jordan Miles"></div>
+            <div class="field"><label>Phone</label><input id="cust-book-phone" placeholder="(504) 555-0181"></div>
+            <div class="field"><label>Email</label><input id="cust-book-email" placeholder="jordan@email.com"></div>
+            <div class="field"><label>Preferred Barber</label><select id="cust-book-barber"><option>Any Available</option></select></div>
+            <div class="field"><label>Service</label><select id="cust-book-service"></select></div>
+            <div class="field"><label>Date</label><input type="date" id="cust-book-date"></div>
+            <div class="field"><label>Time</label>
+              <select id="cust-book-time">
+                <option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option>
+                <option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option>
+                <option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option>
+                <option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option>
+                <option>5:00 PM</option><option>5:30 PM</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column:1/-1"><label>Notes Or Style Request</label><textarea id="cust-book-notes" placeholder="Low taper, lineup, keep the top textured..."></textarea></div>
+          </div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem;">
+            <button type="button" class="btn btn-primary" onclick="bookCustomerAppointment()">Book Appointment</button>
+            <button type="button" class="btn btn-ghost" onclick="prefillCustomerBookingFromLookup()">Use Lookup Details</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="portal-stack">
+        <div class="portal-shell">
+          <div class="portal-mini">My portal</div>
+          <h3 style="margin-top:0.4rem;">Profile and appointment center</h3>
+          <p>Your upcoming visits, visit history, and booking preferences all live here.</p>
+          <div class="portal-kpis">
+            <div class="portal-kpi"><strong id="cust-kpi-upcoming">0</strong><span>Upcoming</span></div>
+            <div class="portal-kpi"><strong id="cust-kpi-visits">0</strong><span>Total Visits</span></div>
+            <div class="portal-kpi"><strong id="cust-kpi-spent">$0</strong><span>Total Spent</span></div>
+          </div>
+        </div>
+
+        <div class="portal-shell">
+          <div class="portal-mini">Profile</div>
+          <h3 style="margin-top:0.4rem;">My details</h3>
+          <div class="form-grid" style="margin-top:1rem;">
+            <div class="field"><label>Email</label><input id="cust-profile-email" placeholder="jordan@email.com"></div>
+            <div class="field"><label>Preferred Barber</label><select id="cust-profile-barber"><option>No Preference</option></select></div>
+            <div class="field" style="grid-column:1/-1"><label>Preferences / Notes</label><textarea id="cust-profile-notes" placeholder="Favorite barber, haircut notes, preferred days..."></textarea></div>
+          </div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem;">
+            <button type="button" class="btn btn-primary" onclick="saveCustomerProfile()">Save Profile</button>
+            <button type="button" class="btn btn-ghost" onclick="copyCustomerBookingLink()">Copy Booking Link</button>
+          </div>
+        </div>
+
+        <div class="portal-shell">
+          <div class="portal-mini">Upcoming visits</div>
+          <h3 style="margin-top:0.4rem;">Manage scheduled appointments</h3>
+          <div id="cust-upcoming-list" style="margin-top:1rem;"><div class="portal-empty">Look up your bookings to see upcoming appointments.</div></div>
+        </div>
+
+        <div class="portal-shell">
+          <div class="portal-mini">Visit history</div>
+          <h3 style="margin-top:0.4rem;">Past and completed visits</h3>
+          <div id="cust-history-list" style="margin-top:1rem;"><div class="portal-empty">Your visit history will appear here after booking or checkout.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Login (shown first; same flow as NailGlow Studio) -->
@@ -438,6 +576,30 @@ td{padding:10px 14px;font-size:0.85rem;}
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('checkoutModal')">Cancel</button>
       <button class="btn btn-gold" onclick="completeCheckout()">✓ Complete & Pay</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="customerRescheduleModal">
+  <div class="modal">
+    <h3>📅 Reschedule Appointment</h3>
+    <div class="form-grid">
+      <div class="field"><label>New Date</label><input type="date" id="cust-reschedule-date"></div>
+      <div class="field"><label>New Time</label>
+        <select id="cust-reschedule-time">
+          <option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option>
+          <option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option>
+          <option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option>
+          <option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option>
+          <option>5:00 PM</option><option>5:30 PM</option>
+        </select>
+      </div>
+      <div class="field"><label>Barber</label><select id="cust-reschedule-barber"><option>Any Available</option></select></div>
+      <div class="field" style="grid-column:1/-1"><label>Notes</label><textarea id="cust-reschedule-notes" placeholder="Optional change note"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('customerRescheduleModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomerReschedule()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -776,6 +938,8 @@ const DEFAULT_BB = {
 let DB;
 let currentUser = null;
 let checkoutApptId = null;
+let currentCustomerSession = null;
+let customerRescheduleId = null;
 
 function loadDB() {
   DB = JSON.parse(JSON.stringify(DEFAULT_BB));
@@ -814,6 +978,86 @@ function hasAnyConfiguredPassword() {
   return DB.users.some(u => typeof u.password === 'string' && u.password.trim() !== '');
 }
 
+function digitsOnly(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function parseYmdToDate(value) {
+  if (!value) return null;
+  const d = new Date(value + 'T00:00:00');
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function parseTimeToMinutes(value) {
+  if (!value || value === 'Walk-In') return Number.MAX_SAFE_INTEGER;
+  const match = String(value).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return Number.MAX_SAFE_INTEGER - 1;
+  let hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2], 10);
+  const meridian = match[3].toUpperCase();
+  if (meridian === 'PM' && hour !== 12) hour += 12;
+  if (meridian === 'AM' && hour === 12) hour = 0;
+  return hour * 60 + minute;
+}
+
+function compareAppointments(a, b) {
+  const d1 = parseYmdToDate(a.date);
+  const d2 = parseYmdToDate(b.date);
+  const day1 = d1 ? d1.getTime() : 0;
+  const day2 = d2 ? d2.getTime() : 0;
+  if (day1 !== day2) return day1 - day2;
+  return parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
+}
+
+function getAllAppointmentRecords() {
+  return [
+    ...DB.appointments.map(a => ({ ...a, source: 'appointment' })),
+    ...DB.walkin.map(a => ({ ...a, source: 'walkin' }))
+  ];
+}
+
+function findClientByIdentity(name, phone) {
+  const normalizedName = String(name || '').trim().toLowerCase();
+  const normalizedPhone = digitsOnly(phone);
+  return DB.clients.find(c => {
+    const sameName = String(c.name || '').trim().toLowerCase() === normalizedName;
+    const samePhone = !normalizedPhone || digitsOnly(c.phone) === normalizedPhone;
+    return sameName && samePhone;
+  }) || DB.clients.find(c => String(c.name || '').trim().toLowerCase() === normalizedName);
+}
+
+function upsertClientRecord(payload) {
+  const name = String(payload.name || '').trim();
+  const phone = String(payload.phone || '').trim();
+  if (!name) return null;
+  let client = findClientByIdentity(name, phone);
+  if (!client) {
+    client = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      name,
+      phone,
+      email: payload.email || '',
+      barber: payload.barber || 'No Preference',
+      notes: payload.notes || '',
+      visits: 0,
+      spent: 0,
+      lastVisit: '—'
+    };
+    DB.clients.push(client);
+  } else {
+    if (phone) client.phone = phone;
+    if (payload.email) client.email = payload.email;
+    if (payload.barber && payload.barber !== 'Any Available') client.barber = payload.barber;
+    if (payload.notes) client.notes = payload.notes;
+  }
+  return client;
+}
+
+function getCustomerSessionRecord() {
+  if (!currentCustomerSession) return null;
+  return findClientByIdentity(currentCustomerSession.name, currentCustomerSession.phone);
+}
+
 function needsOwnerPasswordSetup() {
   return !hasAnyConfiguredPassword() &&
     DB.users.some(u => u.role === 'owner' && (u.password == null || u.password === ''));
@@ -822,13 +1066,29 @@ function needsOwnerPasswordSetup() {
 // ── LOGIN (match NailGlow: gate app until sign-in) ─────────────────────────────
 function showLanding() {
   const publicEl = document.getElementById('publicSite');
+  const customerEl = document.getElementById('customerPortalScreen');
   const setupEl = document.getElementById('setupScreen');
   const loginEl = document.getElementById('loginScreen');
   const appEl = document.getElementById('appScreen');
   if (publicEl) publicEl.style.display = 'block';
+  if (customerEl) customerEl.style.display = 'none';
   if (setupEl) setupEl.style.display = 'none';
   if (loginEl) loginEl.style.display = 'none';
   if (appEl) appEl.style.display = 'none';
+}
+
+function showCustomerPortal() {
+  const publicEl = document.getElementById('publicSite');
+  const customerEl = document.getElementById('customerPortalScreen');
+  const setupEl = document.getElementById('setupScreen');
+  const loginEl = document.getElementById('loginScreen');
+  const appEl = document.getElementById('appScreen');
+  if (publicEl) publicEl.style.display = 'none';
+  if (customerEl) customerEl.style.display = 'block';
+  if (setupEl) setupEl.style.display = 'none';
+  if (loginEl) loginEl.style.display = 'none';
+  if (appEl) appEl.style.display = 'none';
+  loadCustomerPortal();
 }
 
 function beginSignIn() {
@@ -841,10 +1101,12 @@ function beginSignIn() {
 
 function openLoginOverlay() {
   const publicEl = document.getElementById('publicSite');
+  const customerEl = document.getElementById('customerPortalScreen');
   const setupEl = document.getElementById('setupScreen');
   const loginEl = document.getElementById('loginScreen');
   const appEl = document.getElementById('appScreen');
   if (publicEl) publicEl.style.display = 'block';
+  if (customerEl) customerEl.style.display = 'none';
   if (setupEl) setupEl.style.display = 'none';
   if (loginEl) loginEl.style.display = 'flex';
   if (appEl) appEl.style.display = 'none';
@@ -856,6 +1118,7 @@ function showLogin() {
 
 function showSetupScreen() {
   const publicEl = document.getElementById('publicSite');
+  const customerEl = document.getElementById('customerPortalScreen');
   const setupEl = document.getElementById('setupScreen');
   const loginEl = document.getElementById('loginScreen');
   const appEl = document.getElementById('appScreen');
@@ -863,6 +1126,7 @@ function showSetupScreen() {
   const em = document.getElementById('setup-email');
   if (em && owner) em.value = owner.email;
   if (publicEl) publicEl.style.display = 'block';
+  if (customerEl) customerEl.style.display = 'none';
   if (setupEl) setupEl.style.display = 'flex';
   if (loginEl) loginEl.style.display = 'none';
   if (appEl) appEl.style.display = 'none';
@@ -895,10 +1159,12 @@ function completeOwnerPasswordSetup() {
 
 function hideLogin() {
   const publicEl = document.getElementById('publicSite');
+  const customerEl = document.getElementById('customerPortalScreen');
   const setupEl = document.getElementById('setupScreen');
   const loginEl = document.getElementById('loginScreen');
   const appEl = document.getElementById('appScreen');
   if (publicEl) publicEl.style.display = 'none';
+  if (customerEl) customerEl.style.display = 'none';
   if (setupEl) setupEl.style.display = 'none';
   if (loginEl) loginEl.style.display = 'none';
   if (appEl) appEl.style.display = 'block';
@@ -999,7 +1265,7 @@ async function copyText(text, successMsg) {
 }
 
 function buildAppointmentConfirmation(appt) {
-  const bookingUrl = DB.settings.bookingUrl || window.location.href;
+  const bookingUrl = DB.settings.bookingUrl || (window.location.href.split('#')[0] + '#customer-portal');
   const parts = [
     DB.settings.shopName || 'BarberBook Pro',
     'Appointment booked for ' + appt.client,
@@ -1128,12 +1394,12 @@ function copyPaymentRequest() {
 }
 
 function copyBookingLink() {
-  const text = DB.settings.bookingUrl || window.location.href;
+  const text = DB.settings.bookingUrl || (window.location.href.split('#')[0] + '#customer-portal');
   copyText(text, 'Booking link copied.');
 }
 
 function populateServiceSelects() {
-  ['appt-service', 'wi-service'].forEach(id => {
+  ['appt-service', 'wi-service', 'cust-book-service'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
     const prev = sel.value;
@@ -1148,10 +1414,18 @@ function populateServiceSelects() {
 }
 
 function populateBarberSelects() {
-  ['appt-barber','wi-barber','cl-barber','filterBarber'].forEach(id=>{
+  ['appt-barber','wi-barber','cl-barber','filterBarber','cust-book-barber','cust-profile-barber','cust-reschedule-barber'].forEach(id=>{
     const sel = document.getElementById(id); if(!sel) return;
     const val = sel.value;
-    sel.innerHTML = id==='filterBarber'?'<option value="">All Barbers</option>':'<option>'+('appt-barber'===id?'Any Available':'Next Available')+'</option>';
+    if (id === 'filterBarber') {
+      sel.innerHTML = '<option value="">All Barbers</option>';
+    } else if (id === 'cust-profile-barber') {
+      sel.innerHTML = '<option>No Preference</option>';
+    } else if (id === 'cust-book-barber' || id === 'cust-reschedule-barber' || id === 'appt-barber') {
+      sel.innerHTML = '<option>Any Available</option>';
+    } else {
+      sel.innerHTML = '<option>Next Available</option>';
+    }
     DB.barbers.forEach(b=>{ const o=document.createElement('option'); o.value=b.name; o.textContent=b.name; sel.appendChild(o); });
     const has = [...sel.options].some(o => o.text === val);
     if (has) sel.value = val;
@@ -1179,6 +1453,12 @@ function saveAppt() {
     notes: document.getElementById('appt-notes').value,
     status: 'Scheduled'
   };
+  upsertClientRecord({
+    name: appt.client,
+    phone: appt.phone,
+    barber: appt.barber,
+    notes: appt.notes
+  });
   DB.appointments.push(appt);
   closeModal('apptModal');
   updateDashboard(); renderAppointments();
@@ -1203,7 +1483,7 @@ function renderAppointments() {
     <td>${a.client}${a.phone?`<div style="font-size:0.72rem;color:var(--smoke)">${a.phone}</div>`:''}</td>
     <td>${a.service}</td><td>${a.barber}</td>
     <td>$${a.price||0}</td>
-    <td><span class="badge ${a.status==='Completed'?'badge-green':a.status==='No-Show'?'badge-red':'badge-yellow'}">${a.status}</span></td>
+    <td><span class="badge ${a.status==='Completed'?'badge-green':a.status==='Scheduled'?'badge-yellow':'badge-red'}">${a.status}</span></td>
     <td style="display:flex;gap:4px;">
       ${a.status==='Scheduled'?`<button class="btn btn-gold btn-sm" onclick="checkout(${a.id})">Checkout</button>`:''} 
       <button class="btn btn-ghost btn-sm" onclick="shareAppointment(${a.id})">Share</button>
@@ -1362,6 +1642,242 @@ function renderClients(search) {
 }
 function deleteClient(id){DB.clients=DB.clients.filter(c=>c.id!==id);renderClients('');saveDB();}
 
+// ── CUSTOMER PORTAL ───────────────────────────────────────────────────────────
+function setCustomerPortalDefaults() {
+  const dateInput = document.getElementById('cust-book-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+}
+
+function loadCustomerPortal() {
+  populateServiceSelects();
+  populateBarberSelects();
+  setCustomerPortalDefaults();
+  if (currentCustomerSession) {
+    const nameEl = document.getElementById('cust-lookup-name');
+    const phoneEl = document.getElementById('cust-lookup-phone');
+    if (nameEl) nameEl.value = currentCustomerSession.name;
+    if (phoneEl) phoneEl.value = currentCustomerSession.phone;
+  }
+  renderCustomerPortal();
+}
+
+function clearCustomerPortal() {
+  currentCustomerSession = null;
+  ['cust-lookup-name','cust-lookup-phone','cust-profile-email','cust-profile-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const profileBarber = document.getElementById('cust-profile-barber');
+  if (profileBarber) profileBarber.value = 'No Preference';
+  renderCustomerPortal();
+}
+
+function prefillCustomerBookingFromLookup() {
+  const lookupName = document.getElementById('cust-lookup-name')?.value || '';
+  const lookupPhone = document.getElementById('cust-lookup-phone')?.value || '';
+  const profileEmail = document.getElementById('cust-profile-email')?.value || '';
+  const profileBarber = document.getElementById('cust-profile-barber')?.value || '';
+  const profileNotes = document.getElementById('cust-profile-notes')?.value || '';
+  if (document.getElementById('cust-book-name')) document.getElementById('cust-book-name').value = lookupName;
+  if (document.getElementById('cust-book-phone')) document.getElementById('cust-book-phone').value = lookupPhone;
+  if (document.getElementById('cust-book-email')) document.getElementById('cust-book-email').value = profileEmail;
+  if (document.getElementById('cust-book-barber') && profileBarber) {
+    document.getElementById('cust-book-barber').value = profileBarber === 'No Preference' ? 'Any Available' : profileBarber;
+  }
+  if (document.getElementById('cust-book-notes') && profileNotes) document.getElementById('cust-book-notes').value = profileNotes;
+}
+
+function findCustomerPortal() {
+  const name = document.getElementById('cust-lookup-name').value.trim();
+  const phone = document.getElementById('cust-lookup-phone').value.trim();
+  if (!name || !phone) {
+    alert('Enter the full name and phone number used for booking.');
+    return;
+  }
+  currentCustomerSession = { name, phone };
+  prefillCustomerBookingFromLookup();
+  renderCustomerPortal();
+}
+
+function matchesCustomerAppointment(appt, session) {
+  if (!session) return false;
+  const sameName = String(appt.client || '').trim().toLowerCase() === String(session.name || '').trim().toLowerCase();
+  const sessionPhone = digitsOnly(session.phone);
+  return sameName && (!sessionPhone || digitsOnly(appt.phone) === sessionPhone);
+}
+
+function formatPortalAppointment(appt) {
+  return `
+    <div class="portal-appointment">
+      <div class="portal-appointment-top">
+        <div>
+          <div class="portal-appointment-title">${escapeHtml(appt.service)}</div>
+          <div class="portal-appointment-meta">${escapeHtml(appt.date || '—')} at ${escapeHtml(appt.time || '—')}<br>${escapeHtml(appt.barber || 'Any Available')} · $${Number(appt.price || 0).toFixed(2)}</div>
+        </div>
+        <span class="badge ${appt.status==='Completed'?'badge-green':appt.status==='Scheduled'?'badge-yellow':'badge-red'}">${escapeHtml(appt.status || 'Scheduled')}</span>
+      </div>
+      ${appt.notes ? `<div class="portal-appointment-meta" style="margin-top:0.65rem;">Notes: ${escapeHtml(appt.notes)}</div>` : ''}
+      ${appt.status === 'Scheduled' ? `
+        <div class="portal-appointment-actions">
+          <button type="button" class="btn btn-gold btn-sm" onclick="openCustomerReschedule(${appt.id})">Reschedule</button>
+          <button type="button" class="btn btn-danger btn-sm" onclick="customerCancelAppointment(${appt.id})">Cancel</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="shareAppointment(${appt.id})">Share</button>
+        </div>` : ''}
+    </div>`;
+}
+
+function renderCustomerPortal() {
+  const record = getCustomerSessionRecord();
+  const profileEmail = document.getElementById('cust-profile-email');
+  const profileBarber = document.getElementById('cust-profile-barber');
+  const profileNotes = document.getElementById('cust-profile-notes');
+  const upcomingEl = document.getElementById('cust-upcoming-list');
+  const historyEl = document.getElementById('cust-history-list');
+  const upcomingCount = document.getElementById('cust-kpi-upcoming');
+  const visitsCount = document.getElementById('cust-kpi-visits');
+  const spentCount = document.getElementById('cust-kpi-spent');
+
+  if (!currentCustomerSession) {
+    if (profileEmail) profileEmail.value = '';
+    if (profileBarber) profileBarber.value = 'No Preference';
+    if (profileNotes) profileNotes.value = '';
+    if (upcomingEl) upcomingEl.innerHTML = '<div class="portal-empty">Look up your bookings to see upcoming appointments.</div>';
+    if (historyEl) historyEl.innerHTML = '<div class="portal-empty">Your visit history will appear here after booking or checkout.</div>';
+    if (upcomingCount) upcomingCount.textContent = '0';
+    if (visitsCount) visitsCount.textContent = '0';
+    if (spentCount) spentCount.textContent = '$0';
+    return;
+  }
+
+  const matchedAppointments = getAllAppointmentRecords()
+    .filter(appt => matchesCustomerAppointment(appt, currentCustomerSession))
+    .sort(compareAppointments);
+  const upcoming = matchedAppointments.filter(appt => appt.status === 'Scheduled');
+  const history = matchedAppointments.filter(appt => appt.status !== 'Scheduled').reverse();
+
+  if (profileEmail) profileEmail.value = record?.email || '';
+  if (profileBarber) profileBarber.value = record?.barber || 'No Preference';
+  if (profileNotes) profileNotes.value = record?.notes || '';
+
+  if (upcomingCount) upcomingCount.textContent = String(upcoming.length);
+  if (visitsCount) visitsCount.textContent = String(record?.visits || 0);
+  if (spentCount) spentCount.textContent = '$' + Number(record?.spent || 0).toFixed(0);
+
+  if (upcomingEl) {
+    upcomingEl.innerHTML = upcoming.length
+      ? upcoming.map(formatPortalAppointment).join('')
+      : '<div class="portal-empty">No upcoming appointments right now. Use the booking form to schedule one.</div>';
+  }
+  if (historyEl) {
+    historyEl.innerHTML = history.length
+      ? history.map(formatPortalAppointment).join('')
+      : '<div class="portal-empty">No completed or cancelled visits yet.</div>';
+  }
+}
+
+function bookCustomerAppointment() {
+  const name = document.getElementById('cust-book-name').value.trim();
+  const phone = document.getElementById('cust-book-phone').value.trim();
+  const email = document.getElementById('cust-book-email').value.trim();
+  const serviceLabel = document.getElementById('cust-book-service').value;
+  const barber = document.getElementById('cust-book-barber').value || 'Any Available';
+  const date = document.getElementById('cust-book-date').value;
+  const time = document.getElementById('cust-book-time').value;
+  const notes = document.getElementById('cust-book-notes').value.trim();
+  if (!name || !phone || !serviceLabel || !date || !time) {
+    alert('Please fill out name, phone, service, date, and time.');
+    return;
+  }
+  const price = parseFloat(serviceLabel.match(/\$(\d+)/)?.[1] || 0);
+  const appt = {
+    id: Date.now(),
+    client: name,
+    phone,
+    service: serviceLabel.split(' — ')[0],
+    price,
+    barber,
+    date,
+    time,
+    notes,
+    status: 'Scheduled'
+  };
+  upsertClientRecord({ name, phone, email, barber, notes });
+  DB.appointments.push(appt);
+  currentCustomerSession = { name, phone };
+  saveDB();
+  renderAppointments();
+  renderClients('');
+  updateDashboard();
+  prefillCustomerBookingFromLookup();
+  renderCustomerPortal();
+  ['cust-book-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  copyText(buildAppointmentConfirmation(appt), 'Appointment booked and confirmation copied.');
+}
+
+function saveCustomerProfile() {
+  if (!currentCustomerSession) {
+    alert('Look up your account first so we know who to save.');
+    return;
+  }
+  const record = upsertClientRecord({
+    name: currentCustomerSession.name,
+    phone: currentCustomerSession.phone,
+    email: document.getElementById('cust-profile-email').value.trim(),
+    barber: document.getElementById('cust-profile-barber').value,
+    notes: document.getElementById('cust-profile-notes').value.trim()
+  });
+  if (record) {
+    saveDB();
+    renderClients('');
+    renderCustomerPortal();
+    alert('Customer profile saved.');
+  }
+}
+
+function openCustomerReschedule(id) {
+  const appt = DB.appointments.find(a => a.id === id) || DB.walkin.find(a => a.id === id);
+  if (!appt) return;
+  customerRescheduleId = id;
+  document.getElementById('cust-reschedule-date').value = appt.date || '';
+  document.getElementById('cust-reschedule-time').value = appt.time || '9:00 AM';
+  document.getElementById('cust-reschedule-barber').value = appt.barber || 'Any Available';
+  document.getElementById('cust-reschedule-notes').value = appt.notes || '';
+  openModal('customerRescheduleModal');
+}
+
+function saveCustomerReschedule() {
+  const appt = DB.appointments.find(a => a.id === customerRescheduleId) || DB.walkin.find(a => a.id === customerRescheduleId);
+  if (!appt) return;
+  appt.date = document.getElementById('cust-reschedule-date').value || appt.date;
+  appt.time = document.getElementById('cust-reschedule-time').value || appt.time;
+  appt.barber = document.getElementById('cust-reschedule-barber').value || appt.barber;
+  appt.notes = document.getElementById('cust-reschedule-notes').value.trim();
+  saveDB();
+  closeModal('customerRescheduleModal');
+  renderAppointments();
+  updateDashboard();
+  renderCustomerPortal();
+  alert('Appointment rescheduled.');
+}
+
+function customerCancelAppointment(id) {
+  const appt = DB.appointments.find(a => a.id === id) || DB.walkin.find(a => a.id === id);
+  if (!appt) return;
+  if (!confirm('Cancel this appointment?')) return;
+  appt.status = 'Cancelled';
+  appt.cancelledAt = new Date().toLocaleString();
+  saveDB();
+  renderAppointments();
+  updateDashboard();
+  renderCustomerPortal();
+}
+
+function copyCustomerBookingLink() {
+  copyBookingLink();
+}
+
 // ── BARBERS ───────────────────────────────────────────────────────────────────
 function saveBarber() {
   DB.barbers.push({id:Date.now(),name:document.getElementById('br-name').value,phone:document.getElementById('br-phone').value,specialty:document.getElementById('br-specialty').value,commission:document.getElementById('br-commission').value,cuts:0,earned:0});
@@ -1471,7 +1987,7 @@ function lineTotal(a) {
 
 function updateDashboard() {
   const todayStr=new Date().toISOString().split('T')[0];
-  const todayAppts=[...DB.appointments,...DB.walkin].filter(a=>a.date===todayStr);
+  const todayAppts=[...DB.appointments,...DB.walkin].filter(a=>a.date===todayStr && a.status!=='Cancelled');
   const completed=todayAppts.filter(a=>a.status==='Completed');
   const rev=completed.reduce((s,a)=>s+lineTotal(a),0);
   const queue=DB.walkin.filter(w=>w.status==='Scheduled').length;
@@ -1491,7 +2007,7 @@ function updateDashboard() {
     <div class="time-slot">
       <div class="slot-time">${a.time||'Walk-In'}</div>
       <div><div class="slot-client">${a.client}</div><div class="slot-service">${a.service} · ${a.barber}</div></div>
-      <span class="badge ${a.status==='Completed'?'badge-green':a.status==='No-Show'?'badge-red':'badge-yellow'}" style="margin-left:auto;">${a.status}</span>
+      <span class="badge ${a.status==='Completed'?'badge-green':a.status==='Scheduled'?'badge-yellow':'badge-red'}" style="margin-left:auto;">${a.status}</span>
       <div class="slot-price">${a.status==='Completed'?'$'+lineTotal(a).toFixed(0):'$'+a.price}</div>
     </div>`).join(''):
     '<div style="color:var(--smoke);font-style:italic;font-size:0.85rem;padding:1rem 0;">No appointments today.</div>';
@@ -1616,9 +2132,14 @@ function importBarberBookData(ev) {
 // INIT — login screen first (same pattern as NailGlow Studio)
 window.addEventListener('DOMContentLoaded', function() {
   try {
-    showLanding();
+    if (window.location.hash === '#customer-portal') {
+      showCustomerPortal();
+    } else {
+      showLanding();
+    }
     const d = document.getElementById('appt-date');
     if (d) d.value = new Date().toISOString().split('T')[0];
+    setCustomerPortalDefaults();
   } catch (e) {
     console.warn('BarberBook init:', e);
   }
