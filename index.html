@@ -22,6 +22,49 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Nunito',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
 
+/* Public landing page */
+.site-shell{min-height:100vh;background:
+  radial-gradient(circle at top right, rgba(11,94,215,0.18), transparent 28%),
+  linear-gradient(180deg,#f6f8fc 0%,#e8eef7 100%);}
+.landing-header{position:sticky;top:0;z-index:90;background:rgba(10,22,40,0.94);backdrop-filter:blur(10px);border-bottom:1px solid rgba(203,213,225,0.14);}
+.landing-header-inner{max-width:1200px;margin:0 auto;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.landing-nav{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.landing-link{color:#dbe4ef;text-decoration:none;font-size:0.86rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;}
+.landing-link:hover{color:#ffffff;}
+.landing-main section{padding:0 1.5rem;}
+.landing-hero{max-width:1200px;margin:0 auto;padding:4.5rem 1.5rem 3rem;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,0.85fr);gap:2rem;align-items:center;}
+.hero-copy h1{font-family:'Nunito Sans',sans-serif;font-size:clamp(2.6rem,4.5vw,4.8rem);line-height:0.98;color:#09162a;}
+.hero-copy p{margin-top:1rem;font-size:1.04rem;line-height:1.7;color:#40516a;max-width:58ch;}
+.hero-actions{display:flex;flex-wrap:wrap;gap:0.9rem;margin-top:1.5rem;}
+.hero-note{margin-top:0.9rem;font-size:0.82rem;color:#5a6b82;text-transform:uppercase;letter-spacing:0.08em;}
+.hero-panel{background:linear-gradient(180deg,#132540 0%,#0b5ed7 100%);color:#ffffff;border-radius:8px;padding:1.5rem;border:1px solid rgba(255,255,255,0.16);box-shadow:0 20px 45px rgba(10,22,40,0.18);}
+.hero-panel-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.75rem;margin-top:1.25rem;}
+.hero-kpi{background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.95rem;}
+.hero-kpi strong{display:block;font-size:1.45rem;color:#ffffff;}
+.hero-kpi span{display:block;margin-top:0.2rem;font-size:0.74rem;letter-spacing:0.08em;text-transform:uppercase;color:#dbe4ef;}
+.landing-band{background:#ffffff;border-top:1px solid #d7e0ec;border-bottom:1px solid #d7e0ec;}
+.band-inner{max-width:1200px;margin:0 auto;padding:1rem 1.5rem;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;}
+.band-stat{padding:0.6rem 0;}
+.band-stat strong{display:block;font-size:1.3rem;color:var(--ink);}
+.band-stat span{font-size:0.8rem;color:var(--smoke);text-transform:uppercase;letter-spacing:0.07em;}
+.section-wrap{max-width:1200px;margin:0 auto;padding:3.5rem 1.5rem;}
+.eyebrow{display:inline-block;font-size:0.74rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);}
+.section-copy{max-width:58ch;margin-top:0.9rem;color:#4a5b72;line-height:1.7;}
+.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1.6rem;}
+.feature-card{background:#ffffff;border:1px solid var(--border);border-radius:8px;padding:1.2rem;box-shadow:0 8px 24px rgba(10,22,40,0.06);}
+.feature-card h3{font-size:1rem;color:var(--steel);}
+.feature-card p{margin-top:0.6rem;font-size:0.92rem;line-height:1.65;color:#526277;}
+.workflow-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1.6rem;}
+.workflow-step{padding:1.3rem 1.2rem;border-top:3px solid var(--red);background:rgba(255,255,255,0.78);}
+.workflow-step strong{display:block;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);}
+.workflow-step h3{margin-top:0.6rem;font-size:1.15rem;color:var(--ink);}
+.workflow-step p{margin-top:0.55rem;color:#526277;line-height:1.65;}
+.cta-band{background:linear-gradient(135deg,#0a1628,#17335a);color:#ffffff;}
+.cta-band .section-copy{color:#d1dbea;}
+.cta-actions{display:flex;flex-wrap:wrap;gap:0.9rem;margin-top:1.4rem;}
+.link-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:4px;border:1px solid rgba(226,232,240,0.35);color:#ffffff;text-decoration:none;font-weight:700;}
+.link-btn:hover{border-color:#ffffff;}
+
 /* Stripe pattern header */
 header{background:var(--ink);position:sticky;top:0;z-index:100;border-bottom:4px solid var(--red);}
 .header-stripe{height:6px;background:repeating-linear-gradient(90deg,#0b5ed7 0,#0b5ed7 16px,#d4dde8 16px,#d4dde8 32px,#7d8fa6 32px,#7d8fa6 48px,#edf1f8 48px,#edf1f8 64px);}
@@ -140,13 +183,136 @@ td{padding:10px 14px;font-size:0.85rem;}
   .container{padding:1rem;}
   .grid-4{grid-template-columns:repeat(2,1fr);}
 }
+@media(max-width:900px){
+  .landing-hero,.feature-grid,.workflow-grid{grid-template-columns:1fr;}
+  .band-inner{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:640px){
+  .landing-header-inner{padding:0.9rem 1rem;}
+  .landing-nav{gap:0.75rem;}
+  .landing-main section,.landing-hero,.section-wrap{padding-left:1rem;padding-right:1rem;}
+  .band-inner{grid-template-columns:1fr 1fr;padding-left:1rem;padding-right:1rem;}
+  .hero-panel-kpis{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
 
+<div id="publicSite" class="site-shell">
+  <div class="landing-header">
+    <div class="landing-header-inner">
+      <div class="logo">
+        <div class="logo-icon">✂️</div>
+        <div><div class="logo-text">BarberBook Pro</div><div class="logo-sub">Barber Shop Booking And Operations</div></div>
+      </div>
+      <div class="landing-nav">
+        <a class="landing-link" href="#features">Features</a>
+        <a class="landing-link" href="#workflow">Workflow</a>
+        <a class="landing-link" href="#launch">Launch</a>
+        <button type="button" class="btn btn-primary" onclick="beginSignIn()">Owner Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="landing-main">
+    <section class="landing-hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Built For Modern Barbershops</div>
+        <h1>Run the chair, the schedule, and the money from one place.</h1>
+        <p>BarberBook Pro gives barbershops a polished home for appointments, walk-ins, client history, services, checkout, and daily reporting. It is designed to help a busy shop stay organized without feeling like office software.</p>
+        <div class="hero-actions">
+          <button type="button" class="btn btn-primary" onclick="beginSignIn()">Open The Shop Dashboard</button>
+          <a class="link-btn" href="#features">See What It Handles</a>
+        </div>
+        <div class="hero-note">Appointments, walk-ins, payouts, barbers, inventory, and reports</div>
+      </div>
+      <div class="hero-panel">
+        <div style="font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:#dbe4ef;">Inside The Workflow</div>
+        <div style="margin-top:0.5rem;font-family:'Nunito Sans',sans-serif;font-size:1.45rem;font-weight:800;line-height:1.2;">From first booking to completed checkout.</div>
+        <div style="margin-top:0.85rem;color:#e2e8f0;line-height:1.65;font-size:0.95rem;">Shops can book clients, manage walk-ins, assign barbers, track services, and hand off payments with shareable booking and payment details.</div>
+        <div class="hero-panel-kpis">
+          <div class="hero-kpi"><strong>Booking</strong><span>Appointments And Walk-Ins</span></div>
+          <div class="hero-kpi"><strong>Checkout</strong><span>Card, Cash App, Venmo, Zelle</span></div>
+          <div class="hero-kpi"><strong>Reports</strong><span>Revenue, team, and service trends</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-band">
+      <div class="band-inner">
+        <div class="band-stat"><strong>One dashboard</strong><span>Daily shop operations</span></div>
+        <div class="band-stat"><strong>Faster handoff</strong><span>Booking and payment sharing</span></div>
+        <div class="band-stat"><strong>Built-in reports</strong><span>Revenue and service visibility</span></div>
+        <div class="band-stat"><strong>Shop-ready setup</strong><span>Services, team, and settings</span></div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="section-wrap">
+        <div class="eyebrow">Features</div>
+        <h2 class="section-title" style="margin-top:0.45rem;">Everything the front desk and the floor need.</h2>
+        <p class="section-copy">The experience stays focused on real barbershop work: keep the queue moving, keep client details organized, and make checkout cleaner at the end of each service.</p>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <h3>Appointments and walk-ins</h3>
+            <p>Handle booked cuts and same-day traffic side by side, with quick entry for guests, service selection, and barber assignment.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Clients and barber team</h3>
+            <p>Keep client preferences, barber specialties, and team structure visible so the shop can move quickly without losing context.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Checkout and payment handoff</h3>
+            <p>Generate payment-ready totals, open configured payment links, and copy booking or payment details when a client needs them fast.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow" class="landing-band">
+      <div class="section-wrap">
+        <div class="eyebrow">Workflow</div>
+        <h2 class="section-title" style="margin-top:0.45rem;">A simple flow for a busy shop.</h2>
+        <div class="workflow-grid">
+          <div class="workflow-step">
+            <strong>Step 1</strong>
+            <h3>Book or add to queue</h3>
+            <p>Start with an appointment or a walk-in, choose the service, and put the client with the right barber.</p>
+          </div>
+          <div class="workflow-step">
+            <strong>Step 2</strong>
+            <h3>Run the day from the dashboard</h3>
+            <p>See who is scheduled, how the queue looks, which services are moving, and how revenue is trending.</p>
+          </div>
+          <div class="workflow-step">
+            <strong>Step 3</strong>
+            <h3>Finish checkout cleanly</h3>
+            <p>Use the payment handoff tools to complete the service and share payment or booking info without slowing the chair down.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="launch" class="cta-band">
+      <div class="section-wrap">
+        <div class="eyebrow" style="color:#a9c7ff;">Launch</div>
+        <h2 class="section-title" style="margin-top:0.45rem;color:#ffffff;">Ready to step into the shop dashboard?</h2>
+        <p class="section-copy">Owners can sign in, add shop settings, wire payment details, and start using the full management app from the same install.</p>
+        <div class="cta-actions">
+          <button type="button" class="btn btn-primary" onclick="beginSignIn()">Owner Sign In</button>
+          <a class="link-btn" href="#features">Review Features</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
 <!-- Login (shown first; same flow as NailGlow Studio) -->
-<div id="loginScreen" style="display:flex;position:fixed;inset:0;background:linear-gradient(135deg,#0a1628,#0b5ed7);z-index:10000;align-items:center;justify-content:center;flex-direction:column;">
+<div id="loginScreen" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,0.76);backdrop-filter:blur(8px);z-index:10000;align-items:center;justify-content:center;flex-direction:column;padding:1rem;">
   <div style="background:#ffffff;border-radius:20px;padding:2.5rem;width:min(380px,90vw);box-shadow:0 24px 60px rgba(11,94,215,0.35);">
+    <div style="display:flex;justify-content:flex-end;margin:-0.75rem -0.75rem 0.5rem 0;">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="showLanding()">Close</button>
+    </div>
     <div style="text-align:center;margin-bottom:1.5rem;">
       <div style="font-size:2.5rem;">✂️</div>
       <div style="font-family:'Pacifico',cursive;font-size:1.75rem;color:#0a1628;">BarberBook Pro</div>
@@ -169,8 +335,11 @@ td{padding:10px 14px;font-size:0.85rem;}
 </div>
 
 <!-- First-run: owner password (avoids committing secrets; satisfies GitHub secret scanning) -->
-<div id="setupScreen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0a1628,#1e3a5f);z-index:10001;align-items:center;justify-content:center;flex-direction:column;">
+<div id="setupScreen" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,0.82);backdrop-filter:blur(8px);z-index:10001;align-items:center;justify-content:center;flex-direction:column;padding:1rem;">
   <div style="background:#ffffff;border-radius:20px;padding:2.5rem;width:min(400px,92vw);box-shadow:0 24px 60px rgba(0,0,0,0.35);">
+    <div style="display:flex;justify-content:flex-end;margin:-0.75rem -0.75rem 0.5rem 0;">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="showLanding()">Close</button>
+    </div>
     <div style="text-align:center;margin-bottom:1.25rem;">
       <div style="font-size:2rem;">🔐</div>
       <div style="font-family:'Pacifico',cursive;font-size:1.5rem;color:#0a1628;">Welcome to BarberBook Pro</div>
@@ -646,22 +815,49 @@ function needsOwnerPasswordSetup() {
 }
 
 // ── LOGIN (match NailGlow: gate app until sign-in) ─────────────────────────────
-function showLogin() {
+function showLanding() {
+  const publicEl = document.getElementById('publicSite');
   const setupEl = document.getElementById('setupScreen');
   const loginEl = document.getElementById('loginScreen');
   const appEl = document.getElementById('appScreen');
+  if (publicEl) publicEl.style.display = 'block';
+  if (setupEl) setupEl.style.display = 'none';
+  if (loginEl) loginEl.style.display = 'none';
+  if (appEl) appEl.style.display = 'none';
+}
+
+function beginSignIn() {
+  if (needsOwnerPasswordSetup()) {
+    showSetupScreen();
+  } else {
+    openLoginOverlay();
+  }
+}
+
+function openLoginOverlay() {
+  const publicEl = document.getElementById('publicSite');
+  const setupEl = document.getElementById('setupScreen');
+  const loginEl = document.getElementById('loginScreen');
+  const appEl = document.getElementById('appScreen');
+  if (publicEl) publicEl.style.display = 'block';
   if (setupEl) setupEl.style.display = 'none';
   if (loginEl) loginEl.style.display = 'flex';
   if (appEl) appEl.style.display = 'none';
 }
 
+function showLogin() {
+  openLoginOverlay();
+}
+
 function showSetupScreen() {
+  const publicEl = document.getElementById('publicSite');
   const setupEl = document.getElementById('setupScreen');
   const loginEl = document.getElementById('loginScreen');
   const appEl = document.getElementById('appScreen');
   const owner = DB.users.find(u => u.role === 'owner');
   const em = document.getElementById('setup-email');
   if (em && owner) em.value = owner.email;
+  if (publicEl) publicEl.style.display = 'block';
   if (setupEl) setupEl.style.display = 'flex';
   if (loginEl) loginEl.style.display = 'none';
   if (appEl) appEl.style.display = 'none';
@@ -693,8 +889,12 @@ function completeOwnerPasswordSetup() {
 }
 
 function hideLogin() {
+  const publicEl = document.getElementById('publicSite');
+  const setupEl = document.getElementById('setupScreen');
   const loginEl = document.getElementById('loginScreen');
   const appEl = document.getElementById('appScreen');
+  if (publicEl) publicEl.style.display = 'none';
+  if (setupEl) setupEl.style.display = 'none';
   if (loginEl) loginEl.style.display = 'none';
   if (appEl) appEl.style.display = 'block';
 }
@@ -724,7 +924,7 @@ function doLogin() {
 
 function doLogout() {
   currentUser = null;
-  showLogin();
+  showLanding();
 }
 
 /** First paint of main UI after successful login */
@@ -1411,11 +1611,7 @@ function importBarberBookData(ev) {
 // INIT — login screen first (same pattern as NailGlow Studio)
 window.addEventListener('DOMContentLoaded', function() {
   try {
-    if (needsOwnerPasswordSetup()) {
-      showSetupScreen();
-    } else {
-      showLogin();
-    }
+    showLanding();
     const d = document.getElementById('appt-date');
     if (d) d.value = new Date().toISOString().split('T')[0];
   } catch (e) {
