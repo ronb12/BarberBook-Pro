@@ -361,6 +361,23 @@ td{padding:10px 14px;font-size:0.85rem;}
         </div>
 
         <div class="portal-shell">
+          <div class="portal-mini">Customer login</div>
+          <h3 style="margin-top:0.4rem;">Sign in or create your portal account</h3>
+          <p>Use your email or phone number with a customer password so you can come back without doing a manual lookup every time.</p>
+          <div id="cust-auth-status" class="portal-empty" style="font-style:normal;padding:0;margin-top:0.8rem;">Not signed in.</div>
+          <div class="form-grid" style="margin-top:1rem;">
+            <div class="field"><label>Email or Phone</label><input id="cust-auth-identifier" placeholder="jordan@email.com or (504) 555-0181"></div>
+            <div class="field"><label>Password</label><input id="cust-auth-password" type="password" placeholder="Customer password"></div>
+          </div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem;">
+            <button type="button" class="btn btn-primary" onclick="loginCustomerPortal()">Customer Sign In</button>
+            <button type="button" class="btn btn-gold" onclick="createCustomerPortalAccount()">Create Account</button>
+            <button type="button" class="btn btn-ghost" onclick="logoutCustomerPortal()">Logout</button>
+          </div>
+          <div style="margin-top:0.8rem;font-size:0.78rem;color:var(--smoke);">Tip: customers can create an account after booking with the same email or phone already attached to their visit.</div>
+        </div>
+
+        <div class="portal-shell">
           <div class="portal-mini">Find my account</div>
           <h3 style="margin-top:0.4rem;">Look up your appointments</h3>
           <p>Use the same name and phone number you booked with.</p>
@@ -894,6 +911,7 @@ td{padding:10px 14px;font-size:0.85rem;}
 <script>
 const ROLES = { owner: 'Owner', manager: 'Manager', barber: 'Barber' };
 const STORE_KEY = 'barberbook_pro_v1';
+const CUSTOMER_SESSION_KEY = 'barberbook_customer_session_v1';
 
 /** Default state (new installs + merge baseline). */
 const DEFAULT_BB = {
@@ -973,6 +991,7 @@ function saveDB() {
 }
 
 loadDB();
+loadCustomerSession();
 
 function hasAnyConfiguredPassword() {
   return DB.users.some(u => typeof u.password === 'string' && u.password.trim() !== '');
@@ -1056,6 +1075,39 @@ function upsertClientRecord(payload) {
 function getCustomerSessionRecord() {
   if (!currentCustomerSession) return null;
   return findClientByIdentity(currentCustomerSession.name, currentCustomerSession.phone);
+}
+
+function saveCustomerSession() {
+  try {
+    if (currentCustomerSession) {
+      localStorage.setItem(CUSTOMER_SESSION_KEY, JSON.stringify(currentCustomerSession));
+    } else {
+      localStorage.removeItem(CUSTOMER_SESSION_KEY);
+    }
+  } catch (e) {
+    console.warn('BarberBook customer session save:', e);
+  }
+}
+
+function loadCustomerSession() {
+  try {
+    const raw = localStorage.getItem(CUSTOMER_SESSION_KEY);
+    currentCustomerSession = raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    console.warn('BarberBook customer session load:', e);
+    currentCustomerSession = null;
+  }
+}
+
+function portalIdentifierMatches(client, identifier) {
+  const normalized = String(identifier || '').trim().toLowerCase();
+  const digits = digitsOnly(identifier);
+  return (client.email && client.email.trim().toLowerCase() === normalized) ||
+    (digits && digitsOnly(client.phone) === digits);
+}
+
+function getClientByPortalLogin(identifier) {
+  return DB.clients.find(client => portalIdentifierMatches(client, identifier));
 }
 
 function needsOwnerPasswordSetup() {
@@ -1654,6 +1706,8 @@ function loadCustomerPortal() {
   populateServiceSelects();
   populateBarberSelects();
   setCustomerPortalDefaults();
+  const authId = document.getElementById('cust-auth-identifier');
+  if (authId && currentCustomerSession) authId.value = currentCustomerSession.email || currentCustomerSession.phone || '';
   if (currentCustomerSession) {
     const nameEl = document.getElementById('cust-lookup-name');
     const phoneEl = document.getElementById('cust-lookup-phone');
@@ -1665,12 +1719,108 @@ function loadCustomerPortal() {
 
 function clearCustomerPortal() {
   currentCustomerSession = null;
-  ['cust-lookup-name','cust-lookup-phone','cust-profile-email','cust-profile-notes'].forEach(id => {
+  saveCustomerSession();
+  ['cust-lookup-name','cust-lookup-phone','cust-profile-email','cust-profile-notes','cust-auth-identifier','cust-auth-password'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
   const profileBarber = document.getElementById('cust-profile-barber');
   if (profileBarber) profileBarber.value = 'No Preference';
+  renderCustomerPortal();
+}
+
+function setCustomerSessionFromClient(client) {
+  if (!client) return;
+  currentCustomerSession = {
+    clientId: client.id,
+    name: client.name,
+    phone: client.phone || '',
+    email: client.email || ''
+  };
+  saveCustomerSession();
+}
+
+function loginCustomerPortal() {
+  const identifier = document.getElementById('cust-auth-identifier').value.trim();
+  const password = document.getElementById('cust-auth-password').value;
+  if (!identifier || !password) {
+    alert('Enter your email or phone and customer password.');
+    return;
+  }
+  const client = getClientByPortalLogin(identifier);
+  if (!client || !client.portalPassword || client.portalPassword !== password) {
+    alert('Invalid customer login.');
+    return;
+  }
+  setCustomerSessionFromClient(client);
+  const nameEl = document.getElementById('cust-lookup-name');
+  const phoneEl = document.getElementById('cust-lookup-phone');
+  if (nameEl) nameEl.value = client.name || '';
+  if (phoneEl) phoneEl.value = client.phone || '';
+  const pwEl = document.getElementById('cust-auth-password');
+  if (pwEl) pwEl.value = '';
+  prefillCustomerBookingFromLookup();
+  renderCustomerPortal();
+}
+
+function createCustomerPortalAccount() {
+  const identifier = document.getElementById('cust-auth-identifier').value.trim();
+  const password = document.getElementById('cust-auth-password').value;
+  const lookupName = document.getElementById('cust-lookup-name').value.trim();
+  const lookupPhone = document.getElementById('cust-lookup-phone').value.trim();
+  const bookingName = document.getElementById('cust-book-name').value.trim();
+  const bookingPhone = document.getElementById('cust-book-phone').value.trim();
+  const bookingEmail = document.getElementById('cust-book-email').value.trim();
+  const sessionName = currentCustomerSession?.name || '';
+  const sessionPhone = currentCustomerSession?.phone || '';
+  const sessionEmail = currentCustomerSession?.email || '';
+  const name = lookupName || sessionName || bookingName;
+  const phone = lookupPhone || sessionPhone || bookingPhone;
+  const email = bookingEmail || sessionEmail || (identifier.includes('@') ? identifier : '');
+  if (!name || !phone) {
+    alert('Add your name and phone through lookup or booking details first.');
+    return;
+  }
+  if (!identifier || !password || password.length < 6) {
+    alert('Enter an email or phone and a password with at least 6 characters.');
+    return;
+  }
+  let client = findClientByIdentity(name, phone) || getClientByPortalLogin(identifier);
+  if (!client) {
+    client = upsertClientRecord({
+      name,
+      phone,
+      email,
+      barber: document.getElementById('cust-profile-barber')?.value || 'No Preference',
+      notes: document.getElementById('cust-profile-notes')?.value?.trim() || ''
+    });
+  }
+  if (!client) return;
+  if (client.portalPassword && client.portalPassword !== password) {
+    alert('This customer account already exists. Use Customer Sign In instead.');
+    return;
+  }
+  client.portalPassword = password;
+  if (identifier.includes('@')) client.email = identifier;
+  else if (!client.phone) client.phone = identifier;
+  if (email && !client.email) client.email = email;
+  saveDB();
+  setCustomerSessionFromClient(client);
+  const nameEl = document.getElementById('cust-lookup-name');
+  const phoneEl = document.getElementById('cust-lookup-phone');
+  if (nameEl) nameEl.value = client.name || '';
+  if (phoneEl) phoneEl.value = client.phone || '';
+  prefillCustomerBookingFromLookup();
+  renderClients('');
+  renderCustomerPortal();
+  alert('Customer portal account created.');
+}
+
+function logoutCustomerPortal() {
+  currentCustomerSession = null;
+  saveCustomerSession();
+  const pwEl = document.getElementById('cust-auth-password');
+  if (pwEl) pwEl.value = '';
   renderCustomerPortal();
 }
 
@@ -1696,7 +1846,8 @@ function findCustomerPortal() {
     alert('Enter the full name and phone number used for booking.');
     return;
   }
-  currentCustomerSession = { name, phone };
+  currentCustomerSession = { name, phone, email: getCustomerSessionRecord()?.email || '' };
+  saveCustomerSession();
   prefillCustomerBookingFromLookup();
   renderCustomerPortal();
 }
@@ -1740,6 +1891,8 @@ function renderCustomerPortal() {
   const spentCount = document.getElementById('cust-kpi-spent');
 
   if (!currentCustomerSession) {
+    const authStatus = document.getElementById('cust-auth-status');
+    if (authStatus) authStatus.textContent = 'Not signed in.';
     if (profileEmail) profileEmail.value = '';
     if (profileBarber) profileBarber.value = 'No Preference';
     if (profileNotes) profileNotes.value = '';
@@ -1751,12 +1904,23 @@ function renderCustomerPortal() {
     return;
   }
 
+  const lookupName = document.getElementById('cust-lookup-name');
+  const lookupPhone = document.getElementById('cust-lookup-phone');
+  if (lookupName) lookupName.value = currentCustomerSession.name || '';
+  if (lookupPhone) lookupPhone.value = currentCustomerSession.phone || '';
+
   const matchedAppointments = getAllAppointmentRecords()
     .filter(appt => matchesCustomerAppointment(appt, currentCustomerSession))
     .sort(compareAppointments);
   const upcoming = matchedAppointments.filter(appt => appt.status === 'Scheduled');
   const history = matchedAppointments.filter(appt => appt.status !== 'Scheduled').reverse();
 
+  const authStatus = document.getElementById('cust-auth-status');
+  if (authStatus) {
+    authStatus.textContent = record?.portalPassword
+      ? 'Signed in as ' + (record.email || currentCustomerSession.phone || currentCustomerSession.name)
+      : 'Lookup mode for ' + currentCustomerSession.name + '. Create an account for easier sign-in next time.';
+  }
   if (profileEmail) profileEmail.value = record?.email || '';
   if (profileBarber) profileBarber.value = record?.barber || 'No Preference';
   if (profileNotes) profileNotes.value = record?.notes || '';
@@ -1806,6 +1970,7 @@ function bookCustomerAppointment() {
   upsertClientRecord({ name, phone, email, barber, notes });
   DB.appointments.push(appt);
   currentCustomerSession = { name, phone };
+  saveCustomerSession();
   saveDB();
   renderAppointments();
   renderClients('');
@@ -1829,6 +1994,8 @@ function saveCustomerProfile() {
     notes: document.getElementById('cust-profile-notes').value.trim()
   });
   if (record) {
+    if (currentCustomerSession) currentCustomerSession.email = record.email || currentCustomerSession.email || '';
+    saveCustomerSession();
     saveDB();
     renderClients('');
     renderCustomerPortal();
