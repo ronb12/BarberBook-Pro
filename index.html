@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3565666509316178" crossorigin="anonymous"></script>
+<meta name="google-adsense-account" content="ca-pub-3565666509316178">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a1628">
@@ -198,6 +199,19 @@ td{padding:10px 14px;font-size:0.85rem;}
 .bar{width:100%;background:linear-gradient(180deg,#d4dde8,#0b5ed7);border-radius:3px 3px 0 0;transition:height 0.6s ease;min-height:4px;}
 .bar-lbl{font-size:0.65rem;color:var(--smoke);font-family:'Nunito Sans',sans-serif;font-weight:600;text-transform:uppercase;}
 .bar-val{font-size:0.65rem;color:var(--steel);font-family:'Nunito Sans',sans-serif;font-weight:700;}
+
+/* Revenue readiness */
+.pay-method-row{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--cream);}
+.pay-method-row:last-child{border-bottom:none;}
+.pay-method-row label{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;color:var(--ink);}
+.pay-method-meta{font-size:0.72rem;color:var(--smoke);text-align:right;}
+.readiness-list{display:flex;flex-direction:column;gap:0.65rem;}
+.ready-item{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--cream);}
+.ready-item strong{display:block;font-size:0.88rem;color:var(--steel);}
+.ready-item span{display:block;font-size:0.76rem;color:var(--smoke);margin-top:2px;}
+.ready-pill{white-space:nowrap;border-radius:999px;padding:4px 9px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;}
+.ready-pill.ok{background:#dcfce7;color:#166534;}
+.ready-pill.warn{background:#fef3c7;color:#92400e;}
 
 /* Notification dot */
 .notif{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:4px;vertical-align:middle;}
@@ -528,6 +542,7 @@ td{padding:10px 14px;font-size:0.85rem;}
     <div class="form-grid">
       <div class="field"><label>Client Name</label><input id="appt-client" placeholder="John Smith"></div>
       <div class="field"><label>Phone</label><input id="appt-phone" placeholder="(504) 555-0100"></div>
+      <div class="field"><label>Email</label><input id="appt-email" type="email" placeholder="john@email.com"></div>
       <div class="field"><label>Service</label>
         <select id="appt-service"></select>
       </div>
@@ -870,15 +885,30 @@ td{padding:10px 14px;font-size:0.85rem;}
       </div>
       <div style="margin-top:1rem;"><button class="btn btn-primary" onclick="saveSettings()">Save Settings</button></div>
     </div>
-    <div class="card">
-      <div class="card-hdr"><span class="card-title">Payment Methods</span></div>
-      <div style="display:flex;flex-direction:column;gap:0.75rem;">
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" checked> <span>Cash</span></label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" checked> <span>Card (Stripe)</span></label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" checked> <span>Cash App</span></label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox"> <span>Venmo</span></label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox"> <span>Zelle</span></label>
-      </div>
+	    <div class="card">
+	      <div class="card-hdr"><span class="card-title">Payment Methods</span></div>
+	      <div id="payment-method-settings" style="display:flex;flex-direction:column;">
+	        <div class="pay-method-row">
+	          <label><input type="checkbox" id="pay-cash"> <span>Cash</span></label>
+	          <div class="pay-method-meta">Always available at checkout</div>
+	        </div>
+	        <div class="pay-method-row">
+	          <label><input type="checkbox" id="pay-stripe"> <span>Card (Stripe)</span></label>
+	          <div class="pay-method-meta">Requires payment link</div>
+	        </div>
+	        <div class="pay-method-row">
+	          <label><input type="checkbox" id="pay-cashapp"> <span>Cash App</span></label>
+	          <div class="pay-method-meta">Requires $handle</div>
+	        </div>
+	        <div class="pay-method-row">
+	          <label><input type="checkbox" id="pay-venmo"> <span>Venmo</span></label>
+	          <div class="pay-method-meta">Requires username</div>
+	        </div>
+	        <div class="pay-method-row">
+	          <label><input type="checkbox" id="pay-zelle"> <span>Zelle</span></label>
+	          <div class="pay-method-meta">Requires email or phone</div>
+	        </div>
+	      </div>
       <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--cream);">
         <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--steel);margin-bottom:0.5rem;">Tax Rate</div>
         <div style="display:flex;align-items:center;gap:8px;"><input style="width:80px;background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:0.875rem;" type="number" id="taxRate" value="0" placeholder="0"><span style="color:var(--smoke);">%</span></div>
@@ -886,13 +916,27 @@ td{padding:10px 14px;font-size:0.85rem;}
       <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--cream);display:flex;flex-direction:column;gap:0.75rem;">
         <div class="field"><label>Shop Email</label><input id="set-email" placeholder="bookings@barberbookpro.com"></div>
         <div class="field"><label>Public Booking URL</label><input id="set-booking-url" placeholder="https://your-booking-page.example.com"></div>
+        <div class="field"><label>Stripe Publishable Key</label><input id="set-stripe-publishable" type="password" placeholder="pk_live_..."></div>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="enableStripeKeyEdit()">Edit Stripe Key</button>
+          <button type="button" class="btn btn-gold btn-sm" onclick="toggleStripeKeyVisibility()">Show / Hide</button>
+          <span id="stripe-key-status" style="font-size:0.76rem;color:var(--smoke);">No Stripe publishable key saved yet.</span>
+        </div>
         <div class="field"><label>Stripe Payment Link</label><input id="set-stripe-url" placeholder="https://buy.stripe.com/your-link"></div>
-        <div class="field"><label>Cash App Handle</label><input id="set-cashapp" placeholder="$freshcuts"></div>
-        <div class="field"><label>Venmo Username</label><input id="set-venmo" placeholder="freshcutsbarber"></div>
-        <div class="field"><label>Zelle Email or Phone</label><input id="set-zelle" placeholder="pay@freshcuts.com"></div>
-      </div>
-    </div>
-    <div class="card" style="margin-top:1.5rem;">
+	        <div class="field"><label>Cash App Handle</label><input id="set-cashapp" placeholder="$freshcuts"></div>
+	        <div class="field"><label>Venmo Username</label><input id="set-venmo" placeholder="freshcutsbarber"></div>
+	        <div class="field"><label>Zelle Email or Phone</label><input id="set-zelle" placeholder="pay@freshcuts.com"></div>
+	      </div>
+	    </div>
+	    <div class="card" style="margin-top:1.5rem;">
+	      <div class="card-hdr"><span class="card-title">Revenue Readiness</span></div>
+	      <div id="payment-readiness" class="readiness-list"></div>
+	      <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:1rem;">
+	        <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Revenue Settings</button>
+	        <button type="button" class="btn btn-ghost" onclick="copyBookingLink()">Copy Public Booking Link</button>
+	      </div>
+	    </div>
+	    <div class="card" style="margin-top:1.5rem;">
       <div class="card-hdr"><span class="card-title">Data backup (SaaS-ready export)</span></div>
       <p style="font-size:0.82rem;color:var(--smoke);margin-bottom:0.75rem;">Download JSON for your records or to migrate to a hosted multi-tenant backend later.</p>
       <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
@@ -913,6 +957,7 @@ const ROLES = { owner: 'Owner', manager: 'Manager', barber: 'Barber' };
 const STORE_KEY = 'barberbook_pro_v1';
 const CUSTOMER_SESSION_KEY = 'barberbook_customer_session_v1';
 const STATE_API_PATH = '/api/state';
+const REMOTE_STATE_ENABLED = false;
 
 /** Default state (new installs + merge baseline). */
 const DEFAULT_BB = {
@@ -945,12 +990,20 @@ const DEFAULT_BB = {
     open: '09:00',
     close: '19:00',
     taxRate: 0,
-    bookingUrl: '',
-    stripeUrl: '',
-    cashApp: '',
-    venmo: '',
-    zelle: ''
-  },
+	    bookingUrl: '',
+	    stripePublishableKey: '',
+	    stripeUrl: '',
+	    cashApp: '',
+	    venmo: '',
+	    zelle: '',
+	    paymentMethods: {
+	      cash: true,
+	      stripe: true,
+	      cashApp: true,
+	      venmo: false,
+	      zelle: false
+	    }
+	  },
   weeklyRevenue: [0, 0, 0, 0, 0, 0, 0]
 };
 
@@ -976,13 +1029,23 @@ function loadDB() {
     DB.services = (p.services && p.services.length) ? p.services : DEFAULT_BB.services;
     DB.inventory = (p.inventory && p.inventory.length) ? p.inventory : DEFAULT_BB.inventory;
     DB.transactions = p.transactions || [];
-    DB.settings = Object.assign({}, DEFAULT_BB.settings, p.settings || {});
+	    DB.settings = normalizeSettings(p.settings);
     DB.weeklyRevenue = Array.isArray(p.weeklyRevenue) && p.weeklyRevenue.length === 7
       ? p.weeklyRevenue
       : [...DEFAULT_BB.weeklyRevenue];
   } catch (e) {
     console.warn('BarberBook loadDB:', e);
   }
+}
+
+function normalizeSettings(settings) {
+  const merged = Object.assign({}, DEFAULT_BB.settings, settings || {});
+  merged.paymentMethods = Object.assign(
+    {},
+    DEFAULT_BB.settings.paymentMethods,
+    settings?.paymentMethods || {}
+  );
+  return merged;
 }
 
 function saveDB() {
@@ -1104,7 +1167,8 @@ function loadCustomerSession() {
 }
 
 function canUseRemoteState() {
-  return typeof window !== 'undefined' &&
+  return REMOTE_STATE_ENABLED &&
+    typeof window !== 'undefined' &&
     typeof window.fetch === 'function' &&
     /^https?:$/i.test(window.location.protocol);
 }
@@ -1142,7 +1206,7 @@ async function hydrateRemoteState() {
       DB.services = (p.services && p.services.length) ? p.services : DEFAULT_BB.services;
       DB.inventory = (p.inventory && p.inventory.length) ? p.inventory : DEFAULT_BB.inventory;
       DB.transactions = p.transactions || [];
-      DB.settings = Object.assign({}, DEFAULT_BB.settings, p.settings || {});
+	      DB.settings = normalizeSettings(p.settings);
       DB.weeklyRevenue = Array.isArray(p.weeklyRevenue) && p.weeklyRevenue.length === 7
         ? p.weeklyRevenue
         : [...DEFAULT_BB.weeklyRevenue];
@@ -1388,6 +1452,62 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function maskStripePublishableKey(value) {
+  const key = String(value || '').trim();
+  if (!key) return '';
+  if (key.length <= 12) return '•'.repeat(Math.max(key.length - 4, 0)) + key.slice(-4);
+  return key.slice(0, 7) + '••••••••••' + key.slice(-4);
+}
+
+function syncStripeKeyStatus() {
+  const statusEl = document.getElementById('stripe-key-status');
+  if (!statusEl) return;
+  const key = String(DB.settings.stripePublishableKey || '').trim();
+  if (!key) {
+    statusEl.textContent = 'No Stripe publishable key saved yet.';
+    return;
+  }
+  statusEl.textContent = 'Saved: ' + maskStripePublishableKey(key);
+}
+
+function loadStripePublishableField() {
+  const input = document.getElementById('set-stripe-publishable');
+  if (!input) return;
+  const key = String(DB.settings.stripePublishableKey || '').trim();
+  input.dataset.actual = key;
+  input.dataset.editing = 'false';
+  input.type = 'password';
+  input.readOnly = true;
+  input.value = key ? maskStripePublishableKey(key) : '';
+  syncStripeKeyStatus();
+}
+
+function enableStripeKeyEdit() {
+  const input = document.getElementById('set-stripe-publishable');
+  if (!input) return;
+  input.dataset.editing = 'true';
+  input.readOnly = false;
+  input.type = 'text';
+  input.value = input.dataset.actual || '';
+  input.focus();
+  input.select();
+}
+
+function toggleStripeKeyVisibility() {
+  const input = document.getElementById('set-stripe-publishable');
+  if (!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function readStripePublishableField() {
+  const input = document.getElementById('set-stripe-publishable');
+  if (!input) return '';
+  if (input.dataset.editing === 'true') {
+    return input.value.trim();
+  }
+  return (input.dataset.actual || '').trim();
+}
+
 async function copyText(text, successMsg) {
   try {
     if (navigator.clipboard?.writeText) {
@@ -1418,6 +1538,51 @@ function buildAppointmentConfirmation(appt) {
     DB.settings.phone ? 'Shop: ' + DB.settings.phone : ''
   ];
   return parts.filter(Boolean).join('\n');
+}
+
+function buildAppointmentReminder(appt) {
+  const bookingUrl = DB.settings.bookingUrl || (window.location.href.split('#')[0] + '#customer-portal');
+  return [
+    'Reminder from ' + (DB.settings.shopName || 'BarberBook Pro'),
+    appt.client + ', your appointment is scheduled for ' + appt.date + ' at ' + appt.time + '.',
+    'Service: ' + appt.service,
+    'Barber: ' + appt.barber,
+    bookingUrl ? 'Manage booking: ' + bookingUrl : '',
+    DB.settings.phone ? 'Shop: ' + DB.settings.phone : ''
+  ].filter(Boolean).join('\n');
+}
+
+function getAppointmentContact(appt) {
+  if (appt?.email) return appt.email;
+  const client = findClientByIdentity(appt?.client, appt?.phone);
+  return client?.email || '';
+}
+
+function emailAppointment(id, mode = 'confirmation') {
+  const appt = DB.appointments.find(a=>a.id===id) || DB.walkin.find(a=>a.id===id);
+  if (!appt) return;
+  const email = getAppointmentContact(appt);
+  if (!email) {
+    copyText(
+      mode === 'reminder' ? buildAppointmentReminder(appt) : buildAppointmentConfirmation(appt),
+      'No client email found. Message copied instead.'
+    );
+    return;
+  }
+  const subject = encodeURIComponent(
+    (mode === 'reminder' ? 'Appointment reminder' : 'Appointment confirmation') +
+    ' - ' + (DB.settings.shopName || 'BarberBook Pro')
+  );
+  const body = encodeURIComponent(
+    mode === 'reminder' ? buildAppointmentReminder(appt) : buildAppointmentConfirmation(appt)
+  );
+  window.location.href = 'mailto:' + encodeURIComponent(email) + '?subject=' + subject + '&body=' + body;
+}
+
+function copyAppointmentReminder(id) {
+  const appt = DB.appointments.find(a=>a.id===id) || DB.walkin.find(a=>a.id===id);
+  if (!appt) return;
+  copyText(buildAppointmentReminder(appt), 'Appointment reminder copied.');
 }
 
 function shareAppointment(id) {
@@ -1468,6 +1633,31 @@ function getPaymentMethodConfig(method) {
   return { label: method, value: '', url: '' };
 }
 
+function getEnabledPaymentMethods() {
+  const flags = Object.assign({}, DEFAULT_BB.settings.paymentMethods, DB.settings.paymentMethods || {});
+  const methods = [];
+  if (flags.cash) methods.push('Cash');
+  if (flags.stripe) methods.push('Card (Stripe)');
+  if (flags.cashApp) methods.push('Cash App');
+  if (flags.venmo) methods.push('Venmo');
+  if (flags.zelle) methods.push('Zelle');
+  return methods.length ? methods : ['Cash'];
+}
+
+function isPaymentMethodReady(method) {
+  if (method === 'Cash') return true;
+  const cfg = getPaymentMethodConfig(method);
+  return Boolean(String(cfg.value || '').trim());
+}
+
+function renderCheckoutPaymentOptions(selected) {
+  const sel = document.getElementById('co-method');
+  if (!sel) return;
+  const methods = getEnabledPaymentMethods();
+  sel.innerHTML = methods.map(method => '<option>' + escapeHtml(method) + '</option>').join('');
+  if (selected && methods.includes(selected)) sel.value = selected;
+}
+
 function buildPaymentMessage(appt, total, method) {
   const cfg = getPaymentMethodConfig(method);
   return [
@@ -1492,18 +1682,24 @@ function renderPaymentInstructions(appt, total) {
     return;
   }
 
+  const ready = isPaymentMethodReady(method);
   const line = cfg.value
     ? '<div style="font-size:0.82rem;color:var(--smoke);margin:6px 0 0;">' + escapeHtml(method) + ': ' + escapeHtml(cfg.value) + '</div>'
     : '<div style="font-size:0.82rem;color:#b91c1c;margin:6px 0 0;">Add your ' + escapeHtml(method) + ' details in Settings before using this method live.</div>';
   const openBtn = cfg.url
     ? '<button class="btn btn-primary btn-sm" type="button" onclick="openPaymentLink()">Open ' + escapeHtml(method) + '</button>'
     : '';
+  const stripeNote = method === 'Card (Stripe)' && DB.settings.stripePublishableKey
+    ? '<div style="font-size:0.76rem;color:var(--smoke);margin-top:6px;">Publishable key saved: ' + escapeHtml(maskStripePublishableKey(DB.settings.stripePublishableKey)) + '</div>'
+    : '';
 
   host.innerHTML = '' +
     '<div style="padding:0.9rem;border:1px solid var(--border);border-radius:8px;background:var(--paper);margin-top:0.85rem;">' +
       '<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--steel);">Payment handoff</div>' +
-      '<div style="font-size:0.92rem;font-weight:700;margin-top:4px;">$' + total.toFixed(2) + ' due via ' + escapeHtml(method) + '</div>' +
+	      '<div style="font-size:0.92rem;font-weight:700;margin-top:4px;">$' + total.toFixed(2) + ' due via ' + escapeHtml(method) + '</div>' +
+	      '<div style="font-size:0.76rem;font-weight:800;margin-top:4px;color:' + (ready ? '#166534' : '#92400e') + ';">' + (ready ? 'Ready for live handoff' : 'Needs setup before live use') + '</div>' +
       line +
+      stripeNote +
       '<div style="display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.9rem;">' +
         openBtn +
         '<button class="btn btn-gold btn-sm" type="button" onclick="copyPaymentRequest()">Copy payment request</button>' +
@@ -1587,6 +1783,7 @@ function saveAppt() {
     id: Date.now(),
     client: clientName || 'Guest',
     phone: document.getElementById('appt-phone').value,
+    email: document.getElementById('appt-email').value.trim(),
     service: svc.split(' — ')[0],
     price,
     barber: document.getElementById('appt-barber').value||'Any Available',
@@ -1598,13 +1795,14 @@ function saveAppt() {
   upsertClientRecord({
     name: appt.client,
     phone: appt.phone,
+    email: appt.email,
     barber: appt.barber,
     notes: appt.notes
   });
   DB.appointments.push(appt);
   closeModal('apptModal');
   updateDashboard(); renderAppointments();
-  ['appt-client','appt-phone','appt-notes'].forEach(id=>document.getElementById(id).value='');
+  ['appt-client','appt-phone','appt-email','appt-notes'].forEach(id=>document.getElementById(id).value='');
   saveDB();
   copyText(buildAppointmentConfirmation(appt), 'Appointment confirmation copied.');
 }
@@ -1629,6 +1827,8 @@ function renderAppointments() {
     <td style="display:flex;gap:4px;">
       ${a.status==='Scheduled'?`<button class="btn btn-gold btn-sm" onclick="checkout(${a.id})">Checkout</button>`:''} 
       <button class="btn btn-ghost btn-sm" onclick="shareAppointment(${a.id})">Share</button>
+      ${a.status==='Scheduled'?`<button class="btn btn-ghost btn-sm" onclick="emailAppointment(${a.id})">Email</button>`:''}
+      ${a.status==='Scheduled'?`<button class="btn btn-ghost btn-sm" onclick="copyAppointmentReminder(${a.id})">Reminder</button>`:''}
       <button class="btn btn-danger btn-sm" onclick="cancelAppt(${a.id})">✕</button>
     </td>
   </tr>`).join('');
@@ -1657,14 +1857,15 @@ function checkout(id) {
       <div style="font-size:0.82rem;color:var(--smoke);margin-top:8px;">Client: ${appt.client} · Barber: ${appt.barber}</div>
     </div>
     <div class="field"><label>Tip ($)</label><input id="co-tip" type="number" placeholder="0" value="0" oninput="updateCheckoutAssist()"></div>
-    <div class="field" style="margin-top:0.75rem"><label>Payment Method</label>
-      <select id="co-method" onchange="updateCheckoutAssist()"><option>Cash</option><option>Card (Stripe)</option><option>Cash App</option><option>Venmo</option><option>Zelle</option></select>
-    </div>
+	    <div class="field" style="margin-top:0.75rem"><label>Payment Method</label>
+	      <select id="co-method" onchange="updateCheckoutAssist()"></select>
+	    </div>
     <div id="paymentAssist"></div>
     <p style="font-size:0.72rem;color:var(--smoke);margin-top:0.5rem;">This app can open your real payment links and copy a payment request. Full custom Stripe charging still needs a backend.</p>`;
-  openModal('checkoutModal');
-  updateCheckoutAssist();
-}
+	  openModal('checkoutModal');
+	  renderCheckoutPaymentOptions();
+	  updateCheckoutAssist();
+	}
 
 function updateCheckoutAssist() {
   const appt = DB.appointments.find(a=>a.id===checkoutApptId)||DB.walkin.find(a=>a.id===checkoutApptId);
@@ -1759,6 +1960,7 @@ function renderWalkin() {
       <div style="font-weight:700;color:var(--steel)">$${w.price}</div>
       <button class="btn btn-gold btn-sm" onclick="checkout(${w.id})">Checkout</button>
       <button class="btn btn-ghost btn-sm" onclick="shareAppointment(${w.id})">Share</button>
+      <button class="btn btn-ghost btn-sm" onclick="copyAppointmentReminder(${w.id})">Reminder</button>
     </div>`).join('');
 }
 
@@ -1965,6 +2167,8 @@ function formatPortalAppointment(appt) {
           <button type="button" class="btn btn-gold btn-sm" onclick="openCustomerReschedule(${appt.id})">Reschedule</button>
           <button type="button" class="btn btn-danger btn-sm" onclick="customerCancelAppointment(${appt.id})">Cancel</button>
           <button type="button" class="btn btn-ghost btn-sm" onclick="shareAppointment(${appt.id})">Share</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="emailAppointment(${appt.id})">Email</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="copyAppointmentReminder(${appt.id})">Reminder</button>
         </div>` : ''}
     </div>`;
 }
@@ -2049,6 +2253,7 @@ function bookCustomerAppointment() {
     id: Date.now(),
     client: name,
     phone,
+    email,
     service: serviceLabel.split(' — ')[0],
     price,
     barber,
@@ -2059,7 +2264,7 @@ function bookCustomerAppointment() {
   };
   upsertClientRecord({ name, phone, email, barber, notes });
   DB.appointments.push(appt);
-  currentCustomerSession = { name, phone };
+  currentCustomerSession = { name, phone, email };
   saveCustomerSession();
   saveDB();
   renderAppointments();
@@ -2293,14 +2498,57 @@ function updateDashboard() {
     '<div style="color:var(--smoke);font-style:italic;font-size:0.82rem;">Complete some appointments first.</div>';
 
   // Barber performance
-  document.getElementById('barberPerf').innerHTML=DB.barbers.length?
-    DB.barbers.map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--cream);"><span style="font-weight:600;font-size:0.85rem">${b.name}</span><div style="text-align:right"><div style="font-family:'Pacifico',cursive;color:var(--red)">${b.cuts} cuts</div><div style="font-size:0.72rem;color:var(--smoke)">$${b.earned} today</div></div></div>`).join(''):
-    '<div style="color:var(--smoke);font-style:italic;font-size:0.82rem;">Add barbers to see performance.</div>';
+	  document.getElementById('barberPerf').innerHTML=DB.barbers.length?
+	    DB.barbers.map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--cream);"><span style="font-weight:600;font-size:0.85rem">${b.name}</span><div style="text-align:right"><div style="font-family:'Pacifico',cursive;color:var(--red)">${b.cuts} cuts</div><div style="font-size:0.72rem;color:var(--smoke)">$${b.earned} today</div></div></div>`).join(''):
+	    '<div style="color:var(--smoke);font-style:italic;font-size:0.82rem;">Add barbers to see performance.</div>';
+}
+
+function renderPaymentReadiness() {
+  const host = document.getElementById('payment-readiness');
+  if (!host) return;
+  const flags = Object.assign({}, DEFAULT_BB.settings.paymentMethods, DB.settings.paymentMethods || {});
+  const rows = [
+    { key: 'cash', method: 'Cash', title: 'Cash checkout', note: 'Enabled for in-person payments.' },
+    { key: 'stripe', method: 'Card (Stripe)', title: 'Stripe payment link', note: 'Add a live Stripe Payment Link to take card payments.' },
+    { key: 'cashApp', method: 'Cash App', title: 'Cash App handle', note: 'Add the shop $handle for quick mobile payments.' },
+    { key: 'venmo', method: 'Venmo', title: 'Venmo username', note: 'Add the shop Venmo username if this method is accepted.' },
+    { key: 'zelle', method: 'Zelle', title: 'Zelle contact', note: 'Add the shop Zelle email or phone for bank payments.' }
+  ];
+  host.innerHTML = rows.map(row => {
+    const enabled = Boolean(flags[row.key]);
+    const ready = enabled && isPaymentMethodReady(row.method);
+    const cfg = getPaymentMethodConfig(row.method);
+    const detail = enabled
+      ? (ready ? 'Configured' + (cfg.value ? ': ' + cfg.value : '') : row.note)
+      : 'Disabled in checkout';
+    const action = cfg.url && enabled
+      ? '<button type="button" class="btn btn-ghost btn-sm" data-method="' + escapeHtml(row.method) + '" onclick="openConfiguredPaymentMethod(this.dataset.method)">Test Link</button>'
+      : '';
+    return '<div class="ready-item">' +
+      '<div><strong>' + escapeHtml(row.title) + '</strong><span>' + escapeHtml(detail) + '</span></div>' +
+      '<div style="display:flex;align-items:center;gap:0.5rem;">' +
+        action +
+        '<div class="ready-pill ' + (ready ? 'ok' : 'warn') + '">' + (ready ? 'Ready' : (enabled ? 'Needs setup' : 'Off')) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openConfiguredPaymentMethod(method) {
+  const cfg = getPaymentMethodConfig(method);
+  if (!cfg.url) {
+    alert('Add your ' + method + ' details first.');
+    return;
+  }
+  window.open(cfg.url, '_blank', 'noopener');
 }
 
 function loadSettingsForm() {
   const s = DB.settings;
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v != null ? v : ''; };
+  DB.settings = normalizeSettings(DB.settings);
+  const flags = DB.settings.paymentMethods;
+  const check = (id, v) => { const el = document.getElementById(id); if (el) el.checked = Boolean(v); };
   set('set-name', s.shopName);
   set('set-phone', s.phone);
   set('set-email', s.email);
@@ -2309,13 +2557,25 @@ function loadSettingsForm() {
   set('set-close', s.close);
   set('taxRate', s.taxRate != null ? s.taxRate : 0);
   set('set-booking-url', s.bookingUrl);
+  loadStripePublishableField();
   set('set-stripe-url', s.stripeUrl);
   set('set-cashapp', s.cashApp);
   set('set-venmo', s.venmo);
   set('set-zelle', s.zelle);
+  check('pay-cash', flags.cash);
+  check('pay-stripe', flags.stripe);
+  check('pay-cashapp', flags.cashApp);
+  check('pay-venmo', flags.venmo);
+  check('pay-zelle', flags.zelle);
+  renderPaymentReadiness();
 }
 
 function saveSettings() {
+  const stripePublishableKey = readStripePublishableField();
+  if (stripePublishableKey && !/^pk_(test|live)_/i.test(stripePublishableKey)) {
+    alert('Stripe publishable keys should start with pk_test_ or pk_live_.');
+    return;
+  }
   DB.settings.shopName = document.getElementById('set-name').value;
   DB.settings.phone = document.getElementById('set-phone').value;
   DB.settings.email = document.getElementById('set-email').value;
@@ -2324,11 +2584,21 @@ function saveSettings() {
   DB.settings.close = document.getElementById('set-close').value;
   DB.settings.taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
   DB.settings.bookingUrl = document.getElementById('set-booking-url').value;
+  DB.settings.stripePublishableKey = stripePublishableKey;
   DB.settings.stripeUrl = document.getElementById('set-stripe-url').value;
   DB.settings.cashApp = document.getElementById('set-cashapp').value;
   DB.settings.venmo = document.getElementById('set-venmo').value;
   DB.settings.zelle = document.getElementById('set-zelle').value;
+  DB.settings.paymentMethods = {
+    cash: document.getElementById('pay-cash')?.checked !== false,
+    stripe: document.getElementById('pay-stripe')?.checked === true,
+    cashApp: document.getElementById('pay-cashapp')?.checked === true,
+    venmo: document.getElementById('pay-venmo')?.checked === true,
+    zelle: document.getElementById('pay-zelle')?.checked === true
+  };
   saveDB();
+  loadStripePublishableField();
+  renderPaymentReadiness();
   alert('Settings saved! ✓');
 }
 
@@ -2355,10 +2625,11 @@ function importBarberBookData(ev) {
         if (p[k] !== undefined) merged[k] = JSON.parse(JSON.stringify(p[k]));
       });
       if (!merged.users || !merged.users.length) merged.users = DEFAULT_BB.users;
-      if (!Array.isArray(merged.weeklyRevenue) || merged.weeklyRevenue.length !== 7) {
-        merged.weeklyRevenue = [...DEFAULT_BB.weeklyRevenue];
-      }
-      DB = merged;
+	      if (!Array.isArray(merged.weeklyRevenue) || merged.weeklyRevenue.length !== 7) {
+	        merged.weeklyRevenue = [...DEFAULT_BB.weeklyRevenue];
+	      }
+	      merged.settings = normalizeSettings(merged.settings);
+	      DB = merged;
       saveDB();
       currentUser = null;
       if (needsOwnerPasswordSetup()) {
