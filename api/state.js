@@ -2,6 +2,15 @@ import { ensureSchema, getSql, hasDatabase, sendJson } from "./_lib/db.js";
 
 const STATE_KEY = "barberbook-default";
 
+function isAuthorized(req) {
+  const expectedToken = process.env.BARBERBOOK_STATE_TOKEN;
+  if (!expectedToken) return false;
+
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice("Bearer ".length).trim() : "";
+  return token && token === expectedToken;
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = "";
@@ -25,6 +34,12 @@ function readBody(req) {
 
 export default async function handler(req, res) {
   try {
+    if (!isAuthorized(req)) {
+      res.setHeader("www-authenticate", "Bearer");
+      sendJson(res, 401, { ok: false, error: "Unauthorized." });
+      return;
+    }
+
     const sql = getSql();
     if (!sql) {
       sendJson(res, 503, {
